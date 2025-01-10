@@ -1,4 +1,4 @@
-import 'package:arabiya/models/invoice_item.dart';
+import 'package:manassa_e_commerce/models/invoice_item.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class CartNotifier extends StateNotifier<List<InvoiceItem>> {

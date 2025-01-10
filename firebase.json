@@ -1,14 +1,1 @@
-{
-  "hosting": {
-    "site": "arabeia",
-    "source": ".",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "frameworksBackend": {
-      "region": "europe-west1"
-    }
-  }
-}
+{"flutter":{"platforms":{"android":{"default":{"projectId":"manassa-e-commerce","appId":"1:31620116932:android:17aafc2314dd703a98f491","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"manassa-e-commerce","configurations":{"android":"1:31620116932:android:17aafc2314dd703a98f491","web":"1:31620116932:web:4898aafd37300bd198f491"}}}}}}

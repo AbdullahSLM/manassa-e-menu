@@ -1,9 +1,10 @@
-import 'package:arabiya/models/invoice_item.dart';
-import 'package:arabiya/models/item.dart';
-import 'package:arabiya/ui/app.dart';
-import 'package:arabiya/ui/cart_notifier.dart';
-import 'package:arabiya/ui/invoice_viewer.dart';
-import 'package:arabiya/ui/widgets/full_screen_dialog.dart';
+import 'package:manassa_e_commerce/models/invoice_item.dart';
+import 'package:manassa_e_commerce/models/item.dart';
+import 'package:manassa_e_commerce/ui/app.dart';
+import 'package:manassa_e_commerce/ui/cart_notifier.dart';
+import 'package:manassa_e_commerce/ui/invoice_viewer.dart';
+import 'package:manassa_e_commerce/ui/widgets/full_screen_dialog.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -81,8 +82,10 @@ class CartPage extends StatelessWidget {
                             context: context,
                             builder: (BuildContext context) {
                               return FullScreenDialog(
-                                images: cartItem.item.images,
-                                initialImage: cartItem.item.images[0],
+                                images:
+                                    cartItem.item.images.isNotEmpty ? cartItem.item.images : [const Manassa_e_commerceImages(thumbImage: '', fullHDImage: '')],
+                                initialImage:
+                                    cartItem.item.images.isNotEmpty ? cartItem.item.images[0] : const Manassa_e_commerceImages(thumbImage: '', fullHDImage: ''),
                               );
                             },
                           );
@@ -92,8 +95,15 @@ class CartPage extends StatelessWidget {
                           child: AspectRatio(
                             aspectRatio: 1,
                             child: Image.network(
-                              cartItem.item.images[0].fullHDImage,
+                              cartItem.item.images.isNotEmpty ? cartItem.item.images[0].fullHDImage : '',
                               fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.error, color: Colors.red[200]),
+                                  Text('تعذر تحميل الصورة', style: TextStyle(color: Colors.red[200])),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -135,9 +145,9 @@ class CartPage extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 8),
-                      PriceWidget(
-                        price: cartItem.item.price,
-                        discount: cartItem.item.discount,
+                      Text(
+                        'الحجم (${cartItem.size})',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -149,12 +159,9 @@ class CartPage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('الحجم'),
-                    Text(cartItem.size),
-                  ],
+                PriceWidget(
+                  price: cartItem.item.price,
+                  discount: cartItem.item.discount,
                 ),
                 Column(
                   children: [
@@ -176,13 +183,23 @@ class CartPage extends StatelessWidget {
       constraints: const BoxConstraints(maxHeight: 256),
       child: Builder(
         builder: (context) {
-          final size = MediaQuery.of(context).size;
+          final size = MediaQuery.sizeOf(context);
           return Card(
             child: Row(
               children: [
                 SizedBox(
                   width: 0.25 * size.width,
-                  child: Image.network(cartItem.item.images[0].fullHDImage),
+                  child: CachedNetworkImage(
+                    imageUrl: cartItem.item.images.isNotEmpty ? cartItem.item.images[0].fullHDImage : '',
+                    fit: BoxFit.cover,
+                    errorWidget: (context, error, stackTrace) => Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.error, color: Colors.red[200]),
+                        Text('تعذر تحميل الصورة', style: TextStyle(color: Colors.red[200])),
+                      ],
+                    ),
+                  ),
                 ),
                 Expanded(
                   child: Padding(
@@ -201,7 +218,7 @@ class CartPage extends StatelessWidget {
                           children: [
                             const SizedBox(width: 70, child: Text('الحجم')),
                             const Text(':   '),
-                            Text(cartItem.size),
+                            if (cartItem.size != null) Text(cartItem.size!) else const Text('قياسي'),
                           ],
                         ),
                         Row(

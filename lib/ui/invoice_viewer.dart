@@ -1,8 +1,11 @@
-import 'package:arabiya/pdf/reporting.dart';
-import 'package:arabiya/ui/app.dart';
-import 'package:arabiya/utils.dart';
+import 'package:manassa_e_commerce/db/db.dart';
+import 'package:manassa_e_commerce/models/user.dart';
+import 'package:manassa_e_commerce/pdf/reporting.dart';
+import 'package:manassa_e_commerce/ui/app.dart';
+import 'package:manassa_e_commerce/ui/widgets/internal_note_gialog.dart';
+import 'package:manassa_e_commerce/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:arabiya/models/invoice.dart';
+import 'package:manassa_e_commerce/models/invoice.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class InvoiceViewer extends StatelessWidget {
@@ -12,110 +15,123 @@ class InvoiceViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final EdgeInsets padding;
-    if (ScreenType.type(context) == ScreenType.small) {
-      padding = const EdgeInsets.all(16);
-    } else {
-      padding = EdgeInsets.symmetric(horizontal: size.width / 50, vertical: 24);
-    }
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final size = constraints.biggest;
+        final EdgeInsets padding;
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.vertical,
-      child: Padding(
-        padding: padding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildRecipientInfo(),
-            const Divider(height: 16),
-            _buildInvoiceItems(context),
-            const Divider(height: 16),
-            _buildTotalAmount(),
-          ],
-        ),
-      ),
+        if (ScreenType.type(context) == ScreenType.small) {
+          padding = const EdgeInsets.all(16);
+        } else {
+          padding = EdgeInsets.symmetric(horizontal: size.width / 8, vertical: 24);
+        }
+
+        return SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: Padding(
+            padding: padding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _buildRecipientInfo(),
+                const Divider(height: 16),
+                _buildInvoiceItems(context),
+                const Divider(height: 16),
+                _buildTotalAmount(),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildRecipientInfo() {
+    const redValueStyle = TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.redAccent);
+    const orangeValueStyle = TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.orangeAccent);
+    const greenValueStyle = TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green);
     const style = TextStyle(fontSize: 18);
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = MediaQuery.of(context).size.width;
-        // Use LayoutBuilder to decide the layout based on available width
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Row(
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('اسم الزبون', style: style, overflow: TextOverflow.ellipsis),
-                        Text('رقم الهاتف', style: style, overflow: TextOverflow.ellipsis),
-                        Text('العنوان', style: style, overflow: TextOverflow.ellipsis),
-                        Text('التاريخ', style: style, overflow: TextOverflow.ellipsis),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(' : ', style: style, overflow: TextOverflow.ellipsis),
-                        Text(' : ', style: style, overflow: TextOverflow.ellipsis),
-                        Text(' : ', style: style, overflow: TextOverflow.ellipsis),
-                        Text(' : ', style: style, overflow: TextOverflow.ellipsis),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          invoice.recipientName,
-                          style: style,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(invoice.recipientPhone, style: style, overflow: TextOverflow.ellipsis),
-                        Text(invoice.recipientAddress, style: style, overflow: TextOverflow.ellipsis),
-                        Text(Reporting.format(invoice.createAt), style: style, overflow: TextOverflow.ellipsis),
-                      ],
-                    ),
-                  ),
+                  Text('اسم الزبون', style: style),
+                  Text('رقم الهاتف', style: style),
+                  Text('العنوان', style: style),
+                  Text('التاريخ', style: style),
+                  Text('حالة الطلب', style: style),
+                  Text('حالة الدفع', style: style),
                 ],
               ),
-            ),
-            if (width > 400)
-              SizedBox(
-                width: 75,
-                height: 75,
-                child: Consumer(
-                  builder: (context, ref, child) {
-                    try {
-                      return ref.watch(mode) != Mode.dark ? Image.asset('images/logo.webp') : Image.asset('images/white_logo.webp');
-                    } catch (e) {
-                      return Wrap(
-                        children: [
-                          Text('${const Icon(Icons.error_outline)} | Error: $e'),
-                        ],
-                      );
-                    }
-                  },
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('  |  ', style: style),
+                  Text('  |  ', style: style),
+                  Text('  |  ', style: style),
+                  Text('  |  ', style: style),
+                  Text('  |  ', style: style),
+                  Text('  |  ', style: style),
+                ],
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(invoice.recipientName, style: style, overflow: TextOverflow.ellipsis),
+                    Text(invoice.recipientPhone, style: style, overflow: TextOverflow.ellipsis),
+                    Text(invoice.recipientAddress, style: style, overflow: TextOverflow.ellipsis),
+                    Text(invoice.createAt != null ? Reporting.format(invoice.createAt!) : 'يتم تحديد التاريخ عند الضغط على زر إرسال',
+                        style: style, overflow: TextOverflow.ellipsis),
+                    Text(
+                      invoice.orderStatus.name,
+                      style: invoice.orderStatus == OrderStatus.pending || invoice.orderStatus == OrderStatus.canceled
+                          ? redValueStyle
+                          : invoice.orderStatus == OrderStatus.inProgress
+                              ? orangeValueStyle
+                              : greenValueStyle,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      invoice.paymentStatus.name,
+                      style: invoice.paymentStatus == PaymentStatus.unpaid
+                          ? redValueStyle
+                          : invoice.paymentStatus == PaymentStatus.partiallyPaid
+                              ? orangeValueStyle
+                              : greenValueStyle,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
-          ],
-        );
-      },
+            ],
+          ),
+        ),
+        SizedBox(
+          width: 75,
+          height: 75,
+          child: Consumer(
+            builder: (context, ref, child) {
+              try {
+                return ref.watch(mode) != Mode.dark ? Image.asset('assets/images/logo.webp') : Image.asset('assets/images/white_logo.webp');
+              } catch (e) {
+                return Wrap(
+                  children: [
+                    Text('${const Icon(Icons.error_outline)} | Error: $e'),
+                  ],
+                );
+              }
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -166,7 +182,7 @@ class InvoiceViewer extends StatelessWidget {
                       DataCell(
                         ConstrainedBox(
                           constraints: const BoxConstraints(minWidth: 64),
-                          child: Text(item.size, overflow: TextOverflow.ellipsis),
+                          child: Text(item.size != null ? item.size! : 'قياسي', overflow: TextOverflow.ellipsis),
                         ),
                       ),
                       DataCell(
@@ -236,7 +252,7 @@ class InvoiceViewer extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          indexedItem.$2.size,
+                          indexedItem.$2.size ?? 'قياسي',
                           style: const TextStyle(fontSize: 16),
                         ),
                       ],
@@ -293,24 +309,11 @@ class InvoiceViewer extends StatelessWidget {
                           ),
                           Text(
                             '${indexedItem.$2.item.discountedPrice.toStringAsFixed(2)} $currency',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
-                          ),
-                        ],
-                      ),
-                    ] else ...[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Flexible(
-                            child: Text(
-                              'السعر:',
-                              style: TextStyle(fontSize: 16),
-                              overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
                             ),
-                          ),
-                          Text(
-                            '${indexedItem.$2.item.price.toStringAsFixed(2)} $currency',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
@@ -344,6 +347,7 @@ class InvoiceViewer extends StatelessWidget {
 
   Widget _buildTotalAmount() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -382,7 +386,109 @@ class InvoiceViewer extends StatelessWidget {
           ),
           const SizedBox(height: 8),
         ],
+        const SizedBox(height: 24),
+        if (invoice.note?.isNotEmpty == true)
+          Row(
+            children: [
+              const Text('✶  ', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 18)),
+              const Text(
+                'ملاحظة : ',
+                style: TextStyle(fontSize: 18),
+              ),
+              Expanded(child: Text('${invoice.note}')),
+            ],
+          ),
+        if (invoice.internalNote?.isNotEmpty == true && invoice.note?.isNotEmpty == true) const Divider(thickness: 2),
+        if (invoice.internalNote?.isNotEmpty == true)
+          Consumer(
+            builder: (context, ref, child) {
+              final user = ref.watch(currentUser);
+              if (user != null && user.role.index <= Role.employee.index) {
+                return Row(
+                  mainAxisSize: MainAxisSize.max,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    const Text('✶  ', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 18)),
+                    const Text(
+                      'ملاحظة داخلية : ',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    Expanded(child: Text('${invoice.internalNote}')),
+                    const SizedBox(width: 16),
+                    Builder(builder: (context) {
+                      return ElevatedButton(
+                        onPressed: () {
+                          // تأكد من أن التنقل يحدث بعد اكتمال بناء الواجهة
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            _editInternalNote(context, invoice.internalNote);
+                          });
+                        },
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.edit),
+                            Text('  تعديل'),
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
+                );
+              }
+              return Container();
+            },
+          ),
+        const SizedBox(height: 8),
+        if (invoice.internalNote?.isNotEmpty == false || invoice.internalNote == null)
+          Consumer(
+            builder: (context, ref, child) {
+              final user = ref.read(currentUser);
+              if (user != null && user.role.index <= Role.employee.index) {
+                return ElevatedButton(
+                  onPressed: () {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      _addInternalNote(context);
+                    });
+                  },
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.add),
+                      Text('  إضافة ملاحظة داخلية'),
+                    ],
+                  ),
+                );
+              }
+              return Container();
+            },
+          ),
+        const SizedBox(height: 8),
       ],
+    );
+  }
+
+  void _editInternalNote(BuildContext context, String? currentNote) {
+    showInternalNoteDialog(
+      context,
+      title: 'تعديل الملاحظة الداخلية',
+      initialNote: currentNote,
+      onSave: (newNote) {
+        Database.updateInvoice(invoice.id!, invoice.copyWith(internalNote: newNote));
+        (context as Element).markNeedsBuild();
+      },
+    );
+  }
+
+  void _addInternalNote(BuildContext context) {
+    showInternalNoteDialog(
+      context,
+      title: 'إضافة ملاحظة داخلية',
+      initialNote: '',
+      onSave: (newNote) {
+        Database.updateInvoice(invoice.id!, invoice.copyWith(internalNote: newNote));
+        (context as Element).markNeedsBuild();
+      },
     );
   }
 }

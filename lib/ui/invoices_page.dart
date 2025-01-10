@@ -1,19 +1,25 @@
-import 'package:arabiya/db/db.dart';
-import 'package:arabiya/models/invoice.dart';
-import 'package:arabiya/pdf/reporting.dart';
-import 'package:arabiya/ui/app.dart';
-import 'package:arabiya/ui/widgets/custom_indicator.dart';
-import 'package:arabiya/ui/home_page.dart';
-import 'package:arabiya/ui/invoice_page.dart';
-import 'package:arabiya/ui/invoice_viewer.dart';
-import 'package:arabiya/ui/reports_page.dart';
-import 'package:arabiya/utils.dart';
+import 'dart:async';
+
+import 'package:manassa_e_commerce/db/db.dart';
+import 'package:manassa_e_commerce/models/invoice.dart';
+import 'package:manassa_e_commerce/pdf/reporting.dart';
+import 'package:manassa_e_commerce/ui/app.dart';
+import 'package:manassa_e_commerce/ui/widgets/custom_indicator.dart';
+import 'package:manassa_e_commerce/ui/home_page.dart';
+import 'package:manassa_e_commerce/ui/invoice_page.dart';
+import 'package:manassa_e_commerce/ui/invoice_viewer.dart';
+import 'package:manassa_e_commerce/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:resizable_widget/resizable_widget.dart';
 
-final getInvoicesProvider = FutureProvider((_) => Database.invoicesSearch(limit: 10));
+final getInvoicesProvider = FutureProvider((_) => Database.searchDocuments<Invoice>(
+  collectionRef: Database.invoicesRef,  // تمرير CollectionReference
+  fromJson: (data) => Invoice.fromJson(data),  // استخدام fromJson لتحويل البيانات
+  limit: 10,  // تحديد الحد
+));
+
 
 final selectedInvoice = StateProvider<Invoice?>((_) => null);
 
@@ -52,6 +58,14 @@ class InvoicesView extends ConsumerStatefulWidget {
 }
 
 class _InvoicesPageState extends ConsumerState<InvoicesView> {
+  Timer? _debounce;
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -61,11 +75,14 @@ class _InvoicesPageState extends ConsumerState<InvoicesView> {
 
   void _fetchData(String? pageKey) async {
     try {
-      final invoices = await Database.invoicesSearch(
-        searchText: ref.read(searchText),
-        limit: 10,
-        lastInvoiceId: pageKey,
+      final invoices = await Database.searchDocuments<Invoice>(
+        collectionRef: Database.invoicesRef,  // تمرير CollectionReference
+        fromJson: (data) => Invoice.fromJson(data),  // استخدام fromJson لتحويل البيانات
+        searchText: ref.read(searchText),  // تمرير نص البحث
+        limit: 10,  // تحديد الحد
+        lastDocumentId: pageKey,  // تحديد ID آخر فاتورة (للـ pagination)
       );
+
       if (invoices.isEmpty) {
         pagingController.appendLastPage(invoices.toList());
       } else {
@@ -105,7 +122,7 @@ class _InvoicesPageState extends ConsumerState<InvoicesView> {
                       );
                     }
                   },
-                  error: (err, stack) => const Text('Error'),
+                  error: (err, stack) => Scaffold(body: Center(child: Column(mainAxisAlignment: MainAxisAlignment.center,children: [SelectableText('Error : $err \n Stack : $stack')]))),
                   loading: () => const CustomIndicator(),
                 );
           },
@@ -126,13 +143,21 @@ class _InvoicesPageState extends ConsumerState<InvoicesView> {
                   elevation: const WidgetStatePropertyAll(4),
                   leading: const Icon(Icons.search),
                   hintText: 'بحث',
-                  onChanged: (txt) => ref.read(searchText.notifier).state = txt,
+                  onChanged: (txt) {
+                    if (_debounce?.isActive ?? false) _debounce?.cancel();
+                    _debounce = Timer(const Duration(milliseconds: 300), () {
+                      ref.read(searchText.notifier).state = txt;
+                    });
+                  },
                 ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: IconButton(onPressed: () => pagingController.refresh(), icon: const Icon(Icons.refresh)),
+              child: IconButton(
+                onPressed: () => pagingController.refresh(),
+                icon: const Icon(Icons.refresh),
+              ),
             ),
           ],
         ),
@@ -174,7 +199,6 @@ class _InvoicesPageState extends ConsumerState<InvoicesView> {
       ],
     );
   }
-
   Widget invoiceListTile(Invoice invoice) {
     return Consumer(builder: (context, ref, child) {
       return ListTile(
@@ -183,13 +207,18 @@ class _InvoicesPageState extends ConsumerState<InvoicesView> {
           '${invoice.recipientName} (${invoice.total} $currency)',
           overflow: TextOverflow.ellipsis,
         ),
-        subtitle: Text(Reporting.format(invoice.createAt)),
+        subtitle: Text(Reporting.format(invoice.createAt!)),
         onTap: () {
           if (ScreenType.type(context) == ScreenType.small) {
             Navigator.push(context, MaterialPageRoute(builder: (_) => InvoicePage(invoice: invoice)));
+            ref.read(selectedInvoice.notifier).state = invoice;
           } else {
             ref.read(selectedInvoice.notifier).state = invoice;
           }
+        },
+        onLongPress: () {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => InvoicePage(invoice: invoice)));
+          ref.read(selectedInvoice.notifier).state = invoice;
         },
         selected: ref.watch(selectedInvoice) == invoice,
         trailing: Container(

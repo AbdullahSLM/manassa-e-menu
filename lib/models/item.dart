@@ -1,4 +1,4 @@
-import 'package:arabiya/utils.dart';
+import 'package:manassa_e_commerce/utils.dart';
 import 'package:equatable/equatable.dart';
 
 class Item extends Equatable {
@@ -7,7 +7,7 @@ class Item extends Equatable {
   final int? order;
   final String? description;
   final List<String> sizes;
-  final List<ArabiyaImages> images;
+  final List<Manassa_e_commerceImages> images;
   final double price;
   final double? discount;
 
@@ -29,7 +29,7 @@ class Item extends Equatable {
     int? order,
     String? description,
     List<String>? sizes,
-    List<ArabiyaImages>? images,
+    List<Manassa_e_commerceImages>? images,
     double? price,
     double? discount,
   })  : id = id ?? item.id,
@@ -47,7 +47,7 @@ class Item extends Equatable {
     int? order,
     String? description,
     List<String>? sizes,
-    List<ArabiyaImages>? images,
+    List<Manassa_e_commerceImages>? images,
     double? price,
     double? discount,
   }) =>
@@ -70,7 +70,7 @@ class Item extends Equatable {
         description = json['description'],
         sizes = List.from(json['sizes'] ?? []),
         images = List.unmodifiable([
-          for (final jsonMap in json['images']) ArabiyaImages.fromJson(jsonMap)
+          for (final jsonMap in json['images']) Manassa_e_commerceImages.fromJson(jsonMap)
         ]),
         price = json['price'].toDouble(),
         discount = json['discount']?.toDouble();
@@ -106,13 +106,13 @@ class Item extends Equatable {
       ];
 }
 
-class ArabiyaImages extends Equatable {
+class Manassa_e_commerceImages extends Equatable {
   final String thumbImage;
   final String fullHDImage;
 
-  const ArabiyaImages({required this.thumbImage, required this.fullHDImage});
+  const Manassa_e_commerceImages({required this.thumbImage, required this.fullHDImage});
 
-  ArabiyaImages.fromJson(JsonMap json)
+  Manassa_e_commerceImages.fromJson(JsonMap json)
       : thumbImage = json['thumbImage'],
         fullHDImage = json['fullHDImage'];
 

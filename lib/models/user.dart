@@ -1,68 +1,101 @@
-import 'package:crypto/crypto.dart';
-import 'dart:convert';
+import 'package:equatable/equatable.dart';
 
-class User {
-  int userId;
-  String username;
-  String email;
-  String password;
-  String role;
+enum Role {
+  admin,
+  moderator,
+  employee,
+  customer;
 
-  User({
-    required this.userId,
-    required this.username,
+  static Role fromString(String role) {
+    for (final value in values) {
+      if ('$value' == role) return value;
+    }
+
+    throw UnsupportedError('Invalid Role ($role)');
+  }
+
+  @override
+  String toString() => name;
+}
+
+class User extends Equatable {
+  final String? id;
+  final String name;
+  final String email;
+  final String password;
+  final Role role;
+  final bool active;
+
+  const User({
+    this.id,
+    required this.name,
     required this.email,
-    required String password,
+    required this.password,
     required this.role,
-  }) : password = _hashPassword(password);
+    this.active = true,
+  });
 
-  void setPassword(String password) {
-    this.password = _hashPassword(password);
-  }
+  User.copyWith(
+    User user, {
+    String? id,
+    String? name,
+    String? email,
+    String? password,
+    Role? role,
+    bool? active,
+  })  : id = id ?? user.id,
+        name = name ?? user.name,
+        email = email ?? user.email,
+        password = password ?? user.password,
+        role = role ?? user.role,
+        active = active ?? user.active;
 
-  static String _hashPassword(String password) {
-    var bytes = utf8.encode(password); // Convert password to UTF8
-    var digest = sha256.convert(bytes); // Hash it using SHA-256
-    return digest.toString();
-  }
-
-  bool verifyPassword(String password) {
-    return _hashPassword(password) == this.password;
-  }
-
-  // Equality operator to compare users based on userId
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    if (other is! User) return false;
-    return userId == other.userId;
-  }
-
-  @override
-  int get hashCode => userId.hashCode;
-
-  @override
-  String toString() {
-    return 'User(userId: $userId, username: $username, email: $email, role: $role)';
-  }
+  User copyWith({
+    String? id,
+    String? name,
+    String? email,
+    String? password,
+    Role? role,
+    bool? active,
+  }) =>
+      User.copyWith(
+        this,
+        id: id,
+        name: name,
+        email: email,
+        password: password,
+        role: role,
+        active: active,
+      );
 
   Map<String, dynamic> toJson() {
     return {
-      'user_id': userId,
-      'username': username,
+      'name': name,
       'email': email,
       'password': password,
-      'role': role,
+      'role': role.toString(),
+      'active': active,
     };
   }
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      userId: json['user_id'],
-      username: json['username'],
+      id: json['id'],
+      name: json['name'],
       email: json['email'],
       password: json['password'],
-      role: json['role'],
+      role: Role.fromString(json['role']),
+      active: json['active'],
     );
   }
+
+  @override
+  List<Object?> get props => [
+        id,
+        name,
+        email,
+        password,
+        role,
+        active,
+      ];
 }

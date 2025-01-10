@@ -1,6 +1,6 @@
-import 'package:arabiya/db/db.dart';
-import 'package:arabiya/models/user.dart';
-import 'package:arabiya/ui/home_page.dart';
+import 'package:manassa_e_commerce/db/db.dart';
+import 'package:manassa_e_commerce/models/user.dart';
+import 'package:manassa_e_commerce/ui/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,7 +12,8 @@ class UsersManagement extends StatefulWidget {
 }
 
 class UsersManagementState extends State<UsersManagement> {
-  List<User> _users = []; // List of users to display
+  List<User> _users = [];
+  bool loading = true;
 
   @override
   void initState() {
@@ -24,30 +25,31 @@ class UsersManagementState extends State<UsersManagement> {
   // Function to fetch users from Firebase Firestore
   Future<void> _fetchUsers() async {
     final users = await Database.getUsers();
-    setState(() => _users = users.toList());
+    _users = users.toList();
+    loading = false;
+    setState(() {});
   }
 
-  // Function to display the form to add/edit users
-  void _showUserForm({User? user}) {
-    showDialog<User>(
+  void _showUserForm({User? user}) async {
+    final newUser = await showDialog<User>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(user == null ? 'إضافة مستخدم جديد' : 'تعديل المستخدم ${user.username} - ${user.email}'),
+          title: Text(user == null ? 'إضافة مستخدم جديد' : 'تعديل المستخدم ${user.name} - ${user.email}'),
           content: UserForm(user: user),
         );
       },
-    ).then((newUser) {
-      if (newUser != null) {
-        if (user == null) {
-          _users.add(newUser);
-        } else {
-          final index = _users.indexWhere((user) => user.id == newUser.id);
-          _users[index] = newUser;
-        }
-        setState(() {});
+    );
+
+    if (newUser != null) {
+      if (user == null) {
+        _users.add(newUser);
+      } else {
+        final index = _users.indexWhere((user) => user.id == newUser.id);
+        _users[index] = newUser;
       }
-    });
+      setState(() {});
+    }
   }
 
   @override
@@ -55,71 +57,79 @@ class UsersManagementState extends State<UsersManagement> {
     return Scaffold(
       appBar: AppBar(title: const Text('إدارة المستخدمين')),
       drawer: drawer(context),
-      body: ListView.builder(
-        itemCount: _users.length,
-        itemBuilder: (context, index) {
-          final user = _users[index];
-          return ListTile(
-            title: Text(user.username),
-            subtitle: Text(user.email),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () => _showUserForm(user: user), // Edit user
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () => _deleteUser(user), // Delete user
-                ),
-              ],
-            ),
-            onTap: () {
-              // Optionally show user details in a dialog
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: const Text('تفاصيل المستخدم'),
-                    content: Row(
-                      children: [
-                        const Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('اسم المستخدم'),
-                            Text('البريد الإلكتروني'),
-                            Text('الدور'),
-                          ],
-                        ),
-                        const Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('  |  '),
-                            Text('  |  '),
-                            Text('  |  '),
-                          ],
-                        ),
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(user.username),
-                            Text(user.email),
-                            Text('${user.role}'),
-                          ],
-                        ),
-                      ],
+      body: Builder(
+        builder: (context) {
+          if (loading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (_users.isEmpty) {
+            return const Center(child: Text('لا يوجد مستخدمين'));
+          }
+          return ListView.builder(
+            itemCount: _users.length,
+            itemBuilder: (context, index) {
+              final user = _users[index];
+              return ListTile(
+                title: Text(user.name),
+                subtitle: Text(user.email),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () => _showUserForm(user: user), // Edit user
                     ),
-                    actions: [
-                      TextButton(
-                        child: const Text('إغلاق'),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ],
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () => _deleteUser(user), // Delete user
+                    ),
+                  ],
+                ),
+                onTap: () {
+                  // Optionally show user details in a dialog
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('تفاصيل المستخدم'),
+                        content: Row(
+                          children: [
+                            const Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('اسم المستخدم'),
+                                Text('البريد الإلكتروني'),
+                                Text('الدور'),
+                              ],
+                            ),
+                            const Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text('  |  '),
+                                Text('  |  '),
+                                Text('  |  '),
+                              ],
+                            ),
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(user.name),
+                                Text(user.email),
+                                Text('${user.role}'),
+                              ],
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            child: const Text('إغلاق'),
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                        ],
+                      );
+                    },
                   );
                 },
               );
@@ -138,10 +148,34 @@ class UsersManagementState extends State<UsersManagement> {
 
   // Function to delete a user from Firestore
   void _deleteUser(User user) async {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('حذف المستخدم'),
+          content: Text('هل أنت متأكد من حذف المستخدم (${user.name})؟'),
+          actions: [
+            TextButton(
+              child: const Text('إلغاء'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: const Text('حذف'),
+              onPressed: () {
+                _deleteUserConfirmed(user);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteUserConfirmed(User user) async {
     await Database.deleteUser(user);
-    setState(() {
-      _users.removeWhere((u) => u.id == user.id);
-    });
+    _users.removeWhere((u) => u.id == user.id);
+    setState(() {});
   }
 }
 
@@ -159,6 +193,8 @@ class _UserFormState extends State<UserForm> {
 
   late final StateProvider<User> userProvider;
 
+  final hidePassword = StateProvider((_) => true);
+
   @override
   void initState() {
     super.initState();
@@ -166,7 +202,7 @@ class _UserFormState extends State<UserForm> {
     userProvider = StateProvider((_) {
       return widget.user ??
           const User(
-            username: '',
+            name: '',
             email: '',
             password: '',
             role: Role.customer,
@@ -190,7 +226,7 @@ class _UserFormState extends State<UserForm> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       TextFormField(
-                        initialValue: user.username,
+                        initialValue: user.name,
                         decoration: const InputDecoration(labelText: 'اسم المستخدم'),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -198,7 +234,7 @@ class _UserFormState extends State<UserForm> {
                           }
                           return null;
                         },
-                        onSaved: (value) => _updateUser(ref, username: value),
+                        onSaved: (value) => _updateUser(ref, name: value),
                       ),
                       TextFormField(
                         initialValue: user.email,
@@ -211,43 +247,68 @@ class _UserFormState extends State<UserForm> {
                         },
                         onSaved: (value) => _updateUser(ref, email: value),
                       ),
+                      const SizedBox(height: 24),
                       if (widget.user != null)
                         const Padding(
                           padding: EdgeInsets.all(8.0),
                           child: Text('كلمة السر تتغير فقط إذا قمت بتغير كلمة السر هنا'),
                         ),
-                      Consumer(
-                        builder: (context, ref, child) {
-                          return TextFormField(
-                            decoration: const InputDecoration(labelText: 'كلمة المرور'),
-                            obscureText: true,
-                            validator: (value) {
-                              if(widget.user != null ) return null;
-                              if (value?.isEmpty == true) {
-                                return 'الرجاء إدخال كلمة المرور';
-                              }
-                              return null;
-                            },
-                            onChanged: (value) => _updateUser(ref, password: value),
-                            onSaved: (value) => _updateUser(ref, password: value),
-                          );
-                        },
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Consumer(
+                              builder: (context, ref, child) {
+                                return TextFormField(
+                                  obscureText: ref.watch(hidePassword),
+                                  decoration: InputDecoration(
+                                    labelText: 'كلمة المرور',
+                                    suffixIcon: IconButton(
+                                      onPressed: () => ref.read(hidePassword.notifier).state = !ref.read(hidePassword),
+                                      icon: Icon(ref.watch(hidePassword) ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                                    ),
+                                  ),
+                                  validator: (value) {
+                                    if (widget.user != null) return null;
+                                    if (value?.isEmpty == true) {
+                                      return 'الرجاء إدخال كلمة المرور';
+                                    }
+                                    return null;
+                                  },
+                                  onChanged: (value) => _updateUser(ref, password: value),
+                                  onSaved: (value) => _updateUser(ref, password: value),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Consumer(
+                              builder: (context, ref, child) {
+                                return TextFormField(
+                                  obscureText: ref.watch(hidePassword),
+                                    decoration: InputDecoration(
+                                    labelText: 'تأكيد كلمة المرور',
+                                    suffixIcon: IconButton(
+                                      onPressed: () => ref.read(hidePassword.notifier).state = !ref.read(hidePassword),
+                                      icon: Icon(ref.watch(hidePassword) ? Icons.visibility : Icons.visibility_off),
+                                    ),
+                                  ),
+                                  validator: (value) {
+                                    if (widget.user != null && value?.isEmpty == true) {
+                                      return 'الرجاء إدخال تأكيد كلمة المرور';
+                                    }
+                                    if (value != ref.read(userProvider).password) {
+                                      return 'كلمة المرور غير متطابقة';
+                                    }
+                                    return null;
+                                  },
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                      Consumer(builder: (context, ref, child) {
-                        return TextFormField(
-                          decoration: const InputDecoration(labelText: 'تأكيد كلمة المرور'),
-                          obscureText: true,
-                          validator: (value) {
-                            if (widget.user != null && value?.isEmpty == true) {
-                              return 'الرجاء إدخال تأكيد كلمة المرور';
-                            }
-                            if (value != ref.read(userProvider).password) {
-                              return 'كلمة المرور غير متطابقة';
-                            }
-                            return null;
-                          },
-                        );
-                      }),
+                      const SizedBox(height: 24),
                       DropdownButtonFormField<Role>(
                         value: user.role,
                         decoration: const InputDecoration(labelText: 'دور المستخدم'),
@@ -281,6 +342,7 @@ class _UserFormState extends State<UserForm> {
                     child: const Text('إلغاء'),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
+                  const SizedBox(width: 8),
                   ElevatedButton(
                     child: Text(widget.user == null ? 'إضافة' : 'حفظ'),
                     onPressed: () {
@@ -305,7 +367,7 @@ class _UserFormState extends State<UserForm> {
   void _updateUser(
     WidgetRef ref, {
     String? id,
-    String? username,
+    String? name,
     String? email,
     String? password,
     Role? role,
@@ -313,7 +375,7 @@ class _UserFormState extends State<UserForm> {
   }) {
     ref.read(userProvider.notifier).state = ref.read(userProvider).copyWith(
           id: id,
-          username: username,
+          name: name,
           email: email,
           password: password,
           role: role,

@@ -3,11 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:arabiya/main.dart';
+import 'package:manassa_e_commerce/main.dart';
 
 final nameProvider = StateProvider((ref) => sharedPreferences.getString('name') ?? '');
 final phoneProvider = StateProvider((ref) => sharedPreferences.getString('phone') ?? '');
 final addressProvider = StateProvider((ref) => sharedPreferences.getString('address') ?? '');
+final noteProvider = StateProvider((ref) => sharedPreferences.getString('note') ?? '');
 final locationProvider = StateProvider<LatLng>(
   (ref) => LatLng(
     sharedPreferences.getDouble('latitude') ?? 32.904396192173024,
@@ -20,7 +21,7 @@ class UserAddressPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final width = MediaQuery.of(context).size.width;
+    final width = MediaQuery.sizeOf(context).width;
     return Scaffold(
       appBar: AppBar(
         title: const Text('بيانات المستلم'),
@@ -30,51 +31,36 @@ class UserAddressPage extends ConsumerWidget {
   }
 
   Widget pcBody(BuildContext context, WidgetRef ref) {
-    return Center(
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Row(
                 children: [
-                  // address details
                   Expanded(
-                    flex: 1,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.all(16.0),
+                          padding: const EdgeInsets.all(8.0),
                           child: TextFormField(
-                            // controller: TextEditingController(
-                            //   text: ref.read(nameProvider),
-                            // ),
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              labelText: 'اسم المستلم',
-                            ),
-                            onChanged: (txt) {
-                              ref.read(nameProvider.notifier).state = txt;
-                            },
+                            decoration: const InputDecoration(border: OutlineInputBorder(), labelText: 'اسم المستلم'),
+                            initialValue: ref.read(nameProvider),
+                            onSaved: (txt) => ref.read(nameProvider.notifier).state = txt ?? '',
+                            onChanged: (txt) => ref.read(nameProvider.notifier).state = txt,
                             textInputAction: TextInputAction.next,
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.all(16.0),
+                          padding: const EdgeInsets.all(8.0),
                           child: TextFormField(
-                            controller: TextEditingController(
-                              text: ref.read(phoneProvider),
-                            ),
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              labelText: 'رقم هاتف المستلم',
-                            ),
-                            onChanged: (txt) {
-                              ref.read(phoneProvider.notifier).state = txt;
-                            },
+                            decoration: const InputDecoration(border: OutlineInputBorder(), labelText: 'رقم هاتف المستلم'),
+                            initialValue: ref.read(phoneProvider),
+                            onSaved: (txt) => ref.read(phoneProvider.notifier).state = txt ?? '',
+                            onChanged: (txt) => ref.read(phoneProvider.notifier).state = txt,
                             keyboardType: TextInputType.phone,
                             autocorrect: false,
                             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -82,30 +68,34 @@ class UserAddressPage extends ConsumerWidget {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.all(16.0),
+                          padding: const EdgeInsets.all(8.0),
                           child: TextFormField(
-                            controller: TextEditingController(
-                              text: ref.read(addressProvider),
-                            ),
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(),
                               labelText: 'عنوان الاستلام',
                               hintText: 'المدينة، المنطقة، الشارع، أقرب نقطة دالة',
                             ),
-                            onChanged: (txt) {
-                              ref.read(addressProvider.notifier).state = txt;
-                            },
+                            initialValue: ref.read(addressProvider),
+                            onSaved: (txt) => ref.read(addressProvider.notifier).state = txt ?? '',
+                            onChanged: (txt) => ref.read(addressProvider.notifier).state = txt,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: TextFormField(
+                            decoration: const InputDecoration(border: OutlineInputBorder(), labelText: 'ملاحظة'),
+                            initialValue: ref.read(noteProvider),
+                            maxLines: 3,
+                            onSaved: (txt) => ref.read(noteProvider.notifier).state = txt ?? '',
+                            onChanged: (txt) => ref.read(noteProvider.notifier).state = txt,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(width: 16.0),
-                  // map
                   Expanded(
-                    flex: 1,
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
+                      padding: const EdgeInsets.all(8.0),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(10.0),
                         child: AspectRatio(
@@ -114,9 +104,7 @@ class UserAddressPage extends ConsumerWidget {
                             options: MapOptions(
                               initialCenter: ref.watch(locationProvider),
                               initialZoom: 15.0,
-                              onTap: (tapPosition, point) {
-                                ref.watch(locationProvider.notifier).state = point;
-                              },
+                              onTap: (tapPosition, point) => ref.watch(locationProvider.notifier).state = point,
                             ),
                             children: [
                               TileLayer(
@@ -129,11 +117,7 @@ class UserAddressPage extends ConsumerWidget {
                                     width: 80.0,
                                     height: 80.0,
                                     point: ref.watch(locationProvider),
-                                    child: const Icon(
-                                      Icons.location_on,
-                                      color: Colors.red,
-                                      size: 40.0,
-                                    ),
+                                    child: const Icon(Icons.location_on, color: Colors.red, size: 40.0),
                                   ),
                                 ],
                               ),
@@ -145,122 +129,118 @@ class UserAddressPage extends ConsumerWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: _isValid(ref) ? confirm(context, ref) : null,
-                child: const Text('تأكيد'),
-              ),
-            ],
+            ),
           ),
-        ),
+          ElevatedButton(
+            onPressed: _isValid(ref) ? confirm(context, ref) : null,
+            child: const Text('تأكيد'),
+          ),
+        ],
       ),
     );
   }
 
   Widget mobileBody(BuildContext context, WidgetRef ref) {
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: TextFormField(
-                // controller: TextEditingController(
-                //   text: ref.read(nameProvider),
-                // ),
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'اسم المستلم',
-                ),
-                onChanged: (txt) {
-                  ref.read(nameProvider.notifier).state = txt;
-                },
-                textInputAction: TextInputAction.next,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: TextFormField(
-                // controller: TextEditingController(
-                //   text: ref.read(phoneProvider),
-                // ),
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'رقم هاتف المستلم',
-                ),
-                onChanged: (txt) {
-                  ref.read(phoneProvider.notifier).state = txt;
-                },
-                keyboardType: TextInputType.phone,
-                autocorrect: false,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                textInputAction: TextInputAction.next,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: TextFormField(
-                // controller: TextEditingController(
-                //   text: ref.read(addressProvider),
-                // ),
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'عنوان الاستلام',
-                  hintText: 'المدينة، المنطقة، الشارع، أقرب نقطة دالة',
-                ),
-                onChanged: (txt) {
-                  ref.read(addressProvider.notifier).state = txt;
-                },
-              ),
-            ),
-            const SizedBox(height: 16.0),
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10.0),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: FlutterMap(
-                    options: MapOptions(
-                      initialCenter: ref.watch(locationProvider),
-                      initialZoom: 15.0,
-                      onLongPress: (tapPosition, point) {
-                        ref.watch(locationProvider.notifier).state = point;
-                      },
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextFormField(
+                      decoration: const InputDecoration(border: OutlineInputBorder(), labelText: 'اسم المستلم'),
+                      initialValue: ref.read(nameProvider),
+                      onSaved: (txt) => ref.read(nameProvider.notifier).state = txt ?? '',
+                      onChanged: (txt) => ref.read(nameProvider.notifier).state = txt,
+                      textInputAction: TextInputAction.next,
                     ),
-                    children: [
-                      TileLayer(
-                        urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        subdomains: const ['a', 'b', 'c'],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextFormField(
+                      decoration: const InputDecoration(border: OutlineInputBorder(), labelText: 'رقم هاتف المستلم'),
+                      initialValue: ref.read(phoneProvider),
+                      onSaved: (txt) => ref.read(phoneProvider.notifier).state = txt ?? '',
+                      onChanged: (txt) => ref.read(phoneProvider.notifier).state = txt,
+                      keyboardType: TextInputType.phone,
+                      autocorrect: false,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      textInputAction: TextInputAction.next,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextFormField(
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'عنوان الاستلام',
+                        hintText: 'المدينة، المنطقة، الشارع، أقرب نقطة دالة',
                       ),
-                      MarkerLayer(
-                        markers: [
-                          Marker(
-                            width: 80.0,
-                            height: 80.0,
-                            point: ref.watch(locationProvider),
-                            child: const Icon(
-                              Icons.location_on,
-                              color: Colors.red,
-                              size: 40.0,
-                            ),
+                      initialValue: ref.read(addressProvider),
+                      onSaved: (txt) => ref.read(addressProvider.notifier).state = txt ?? '',
+                      onChanged: (txt) => ref.read(addressProvider.notifier).state = txt,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextFormField(
+                      decoration: const InputDecoration(border: OutlineInputBorder(), labelText: 'ملاحظة'),
+                      maxLines: 3,
+                      initialValue: ref.read(noteProvider),
+                      onSaved: (txt) => ref.read(noteProvider.notifier).state = txt ?? '',
+                      onChanged: (txt) => ref.read(noteProvider.notifier).state = txt,
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10.0),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: FlutterMap(
+                        options: MapOptions(
+                          initialCenter: ref.watch(locationProvider),
+                          initialZoom: 15.0,
+                          onLongPress: (tapPosition, point) {
+                            ref.watch(locationProvider.notifier).state = point;
+                          },
+                        ),
+                        children: [
+                          TileLayer(
+                            urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            subdomains: const ['a', 'b', 'c'],
+                          ),
+                          MarkerLayer(
+                            markers: [
+                              Marker(
+                                width: 80.0,
+                                height: 80.0,
+                                point: ref.watch(locationProvider),
+                                child: const Icon(
+                                  Icons.location_on,
+                                  color: Colors.red,
+                                  size: 40.0,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
-            const SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: _isValid(ref) ? confirm(context, ref) : null,
-              child: const Text('تأكيد'),
-            ),
-          ],
-        ),
+          ),
+          ElevatedButton(
+            onPressed: _isValid(ref) ? confirm(context, ref) : null,
+            child: const Text('تأكيد'),
+          ),
+        ],
       ),
     );
   }
@@ -273,6 +253,7 @@ class UserAddressPage extends ConsumerWidget {
     sharedPreferences.setString('name', ref.read(nameProvider));
     sharedPreferences.setString('phone', ref.read(phoneProvider));
     sharedPreferences.setString('address', ref.read(addressProvider));
+    sharedPreferences.setString('note', ref.read(noteProvider));
     sharedPreferences.setDouble('latitude', ref.watch(locationProvider).latitude);
     sharedPreferences.setDouble('longitude', ref.watch(locationProvider).longitude);
 

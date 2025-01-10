@@ -1,7 +1,8 @@
-import 'package:arabiya/models/invoice.dart';
-import 'package:arabiya/models/item.dart';
-import 'package:arabiya/ui/app.dart';
-import 'package:arabiya/utils.dart';
+import 'package:manassa_e_commerce/models/invoice.dart';
+import 'package:manassa_e_commerce/models/item.dart';
+import 'package:manassa_e_commerce/ui/app.dart';
+import 'package:manassa_e_commerce/utils.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/widgets.dart';
@@ -9,16 +10,14 @@ import 'package:pdf/pdf.dart';
 
 abstract class Reporting {
   static Future<Uint8List> createPdfInvoice(Invoice invoice) async {
-    // final font = await PdfGoogleFonts.robotoRegular();
     final font = await fontFromAssetBundle(
       'assets/fonts/HacenTunisia/Regular.ttf',
     );
+    final footerWidget = await footer(invoice);
     final fontBold = await fontFromAssetBundle(
       'assets/fonts/HacenTunisia/Bold-Regular.ttf',
     );
-
     final logo = await imageFromAssetBundle('assets/images/logo.webp');
-
     final pdf = Document();
 
     pdf.addPage(
@@ -42,7 +41,7 @@ abstract class Reporting {
                       SizedBox(height: 32),
                       table(invoice),
                       SizedBox(height: 32),
-                      footer(invoice),
+                      footerWidget,
                       Spacer(),
                       Align(
                         alignment: Alignment.bottomLeft,
@@ -53,10 +52,7 @@ abstract class Reporting {
                         alignment: Alignment.bottomCenter,
                         child: Text(
                           'Created by Manassa Ltd. - manassa.ly',
-                          style: const TextStyle(
-                            color: PdfColors.grey,
-                            fontSize: 10
-                          ),
+                          style: const TextStyle(color: PdfColors.grey, fontSize: 10),
                         ),
                       )
                     ],
@@ -73,19 +69,27 @@ abstract class Reporting {
   }
 
   static Widget header(Invoice invoice, ImageProvider logo) {
+    TextStyle redValueStyle = TextStyle(color: PdfColor.fromHex('#cc3300'));
+    TextStyle orangeValueStyle = TextStyle(color: PdfColor.fromHex('#fcb103'));
+    TextStyle greenValueStyle = TextStyle(color: PdfColor.fromHex('#009900'));
+
     return Row(
       children: [
         Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('اســم المستلم'),
             Text('رقــم الهـاتـف'),
             Text('عنوان المستلم'),
             Text('التـــــــــاريــــخ'),
+            Text('حالة الطلب'),
+            Text('حالة الدفع'),
           ],
         ),
         Column(
           children: [
+            Text('  :'),
+            Text('  :'),
             Text('  :'),
             Text('  :'),
             Text('  :'),
@@ -98,7 +102,23 @@ abstract class Reporting {
             Text(invoice.recipientName),
             Text(invoice.recipientPhone),
             Text(invoice.recipientAddress),
-            Text(format(invoice.createAt)),
+            Text(format(invoice.createAt!)),
+            Text(
+              invoice.orderStatus.toString().split('.').last,
+              style: invoice.orderStatus == OrderStatus.pending || invoice.orderStatus == OrderStatus.canceled
+                  ? redValueStyle
+                  : invoice.orderStatus == OrderStatus.inProgress
+                      ? orangeValueStyle
+                      : greenValueStyle,
+            ),
+            Text(
+              invoice.paymentStatus.toString().split('.').last,
+              style: invoice.paymentStatus == PaymentStatus.unpaid
+                  ? redValueStyle
+                  : invoice.paymentStatus == PaymentStatus.partiallyPaid
+                      ? orangeValueStyle
+                      : greenValueStyle,
+            ),
           ],
         ),
         Spacer(),
@@ -107,12 +127,12 @@ abstract class Reporting {
     );
   }
 
-  static String format(DateTime dateTime) {
-    final year = '${dateTime.year}';
-    final month = '${dateTime.month}';
-    final day = '${dateTime.day}';
-    final hour = dateTime.hour;
-    final minute = dateTime.minute;
+  static String format(Timestamp timestamp) {
+    final year = '${timestamp.toDate().year}';
+    final month = '${timestamp.toDate().month}';
+    final day = '${timestamp.toDate().day}';
+    final hour = timestamp.toDate().hour;
+    final minute = timestamp.toDate().minute;
     return '$year-${month.padLeft(2, '0')}-${day.padLeft(2, '0')} '
         '${hour % 12}:$minute ${hour < 12 ? 'ص' : 'م'}';
   }
@@ -157,8 +177,7 @@ abstract class Reporting {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 1),
                 child: Column(
-                  // Use column to fill all available vertical space
-                  children: [Text(invoiceItems.elementAt(i).size, textAlign: TextAlign.center)],
+                  children: [Text(invoiceItems.elementAt(i).size ?? 'قياسي', textAlign: TextAlign.center)],
                 ),
               ),
               Padding(
@@ -187,44 +206,69 @@ abstract class Reporting {
     );
   }
 
-  static Widget footer(Invoice invoice) {
-    const googleMapUrl = 'https://www.google.com/maps/';
-    return Row(
+  static Future<Widget> footer(Invoice invoice) async {
+    final font = Font.ttf(await rootBundle.load("assets/fonts/Arial-Unicode-Font.ttf"));
+    const googleMapUrl = 'https://www.google.com/maps?q=';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
+        Row(
           children: [
-            BarcodeWidget(
-              data: '$googleMapUrl@${invoice.latitude},${invoice.longitude},15z',
-              barcode: Barcode.qrCode(),
-              width: 64,
-              height: 64,
+            Column(
+              children: [
+                BarcodeWidget(
+                  data: '$googleMapUrl${invoice.latitude},${invoice.longitude}',
+                  barcode: Barcode.qrCode(),
+                  width: 64,
+                  height: 64,
+                ),
+                Text('الموقع'),
+              ],
             ),
-            Text('الموقع'),
+            SizedBox(width: 64),
+            Column(
+              children: [
+                BarcodeWidget(
+                  data: '$baseUrl/#/invoices/${invoice.id}',
+                  barcode: Barcode.qrCode(),
+                  width: 64,
+                  height: 64,
+                ),
+                Text('الفاتورة'),
+              ],
+            ),
+            Spacer(),
+            Column(children: [
+              Text(
+                'الإجمالي: ${invoice.total} $currency',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Text(
+                'لقد ادخرت: ${invoice.savings} $currency',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              )
+            ]),
           ],
         ),
-        SizedBox(width: 64),
-        Column(
-          children: [
-            BarcodeWidget(
-              data: '$baseUrl/invoices/${invoice.id}',
-              barcode: Barcode.qrCode(),
-              width: 64,
-              height: 64,
-            ),
-            Text('الفاتورة'),
-          ],
-        ),
-        Spacer(),
-        Column(children: [
-          Text(
-            'الإجمالي: ${invoice.total} $currency',
-            style: TextStyle(fontWeight: FontWeight.bold),
+        SizedBox(height: 32),
+        if (invoice.note!.isNotEmpty)
+          Row(
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text(
+                ' ✶ ',
+                style: TextStyle(
+                  color: PdfColor.fromHex('#fcb103'),
+                  font: font,
+                  fontSize: 18,
+                ),
+              ),
+              Text('ملاحظة : ', style: const TextStyle(fontSize: 18)),
+              Text('${invoice.note}'),
+            ],
           ),
-          Text(
-            'لقد ادخرت: ${invoice.savings} $currency',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          )
-        ]),
       ],
     );
   }

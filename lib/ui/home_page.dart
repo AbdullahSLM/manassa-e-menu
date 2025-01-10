@@ -1,13 +1,17 @@
-import 'package:arabiya/main.dart';
-import 'package:arabiya/models/item.dart';
-import 'package:arabiya/ui/widgets/custom_indicator.dart';
-import 'package:arabiya/utils.dart';
-import 'package:arabiya/ui/cart_notifier.dart';
-import 'package:arabiya/ui/widgets/items_grid_view.dart';
-import 'package:arabiya/ui/widgets/link_text.dart';
+import 'package:manassa_e_commerce/main.dart';
+import 'package:manassa_e_commerce/models/item.dart';
+import 'package:manassa_e_commerce/models/user.dart';
+import 'package:manassa_e_commerce/ui/login_form.dart';
+import 'package:manassa_e_commerce/ui/widgets/custom_indicator.dart';
+import 'package:manassa_e_commerce/utils.dart';
+import 'package:manassa_e_commerce/ui/cart_notifier.dart';
+import 'package:manassa_e_commerce/ui/widgets/items_grid_view.dart';
+import 'package:manassa_e_commerce/ui/widgets/link_text.dart';
 import 'package:badges/badges.dart' as badges;
-import 'package:arabiya/db/db.dart';
-import 'package:arabiya/ui/app.dart';
+import 'package:manassa_e_commerce/db/db.dart';
+import 'package:manassa_e_commerce/ui/app.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -54,11 +58,16 @@ class HomePage extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: ClipRRect(
-            child: Image.asset('images/white_logo.webp'),
+            child: Image.asset('assets/images/white_logo.webp'),
           ),
         ),
       ],
     );
+  }
+
+  Future<bool> isConnected() async {
+    var connectivityResult = await Connectivity().checkConnectivity();
+    return connectivityResult == ConnectivityResult.mobile || connectivityResult == ConnectivityResult.wifi;
   }
 
   Widget body() {
@@ -76,7 +85,7 @@ class HomePage extends StatelessWidget {
                   return Center(child: Text('${snapshot.error}'));
                 }
                 if (snapshot.hasData) {
-                  if (snapshot.data == null) {
+                  if (snapshot.data == null || snapshot.data?.isEmpty == true) {
                     return const Center(child: Text('لا توجد بيانات!!!'));
                   }
 
@@ -149,29 +158,126 @@ Widget drawer(BuildContext context) {
     child: Column(
       children: [
         Expanded(
-          child: ListView(
-            children: [
-              ListTile(
-                title: const Text('الصفحة الرئيسية'),
-                onTap: () => Navigator.popAndPushNamed(context, '/'),
-              ),
-              ListTile(
-                onTap: () => Navigator.popAndPushNamed(context, '/items'),
-                title: const Text('إعدادات الأصناف'),
-              ),
-              ListTile(
-                onTap: () => Navigator.popAndPushNamed(context, '/invoices'),
-                title: const Text('الفواتير'),
-              ),
-              ListTile(
-                onTap: () => Navigator.popAndPushNamed(context, '/appearance'),
-                title: const Text('إعدادات المظهر'),
-              ),
-              ListTile(
-                onTap: () => Navigator.popAndPushNamed(context, '/reports'),
-                title: const Text('التقارير'),
-              ),
-            ],
+          child: Consumer(
+            builder: (context, ref, child) {
+              final user = ref.watch(currentUser);
+              final role = user?.role;
+              return ListView(
+                children: [
+                  if (user != null)
+                    ListTile(
+                      title: Text(user.name),
+                      subtitle: Text(user.email),
+                      leading: const CircleAvatar(child: Icon(Icons.person)),
+                      trailing: IconButton(
+                        onPressed: () {
+                          ref.read(currentUser.notifier).state = null;
+                          Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+                        },
+                        icon: const Icon(Icons.logout),
+                      ),
+                      onTap: () {
+                        // TODO: go to user details page
+                      },
+                    ),
+                  if (user == null)
+                    ListTile(
+                      title: const Text('تسجيل الدخول'),
+                      leading: const CircleAvatar(child: Icon(Icons.person)),
+                      trailing: const Icon(Icons.login),
+                      onTap: () => login(context),
+                    ),
+                  ListTile(
+                    title: const Row(
+                      children: [
+                        Icon(Icons.home_outlined),
+                        SizedBox(width: 10),
+                        Text('الصفحة الرئيسية'),
+                      ],
+                    ),
+                    onTap: () => Navigator.popAndPushNamed(context, '/'),
+                  ),
+                  if (role == Role.admin)
+                    ListTile(
+                      onTap: () => Navigator.popAndPushNamed(context, '/items'),
+                      title: const Row(
+                        children: [
+                          Icon(Icons.category_outlined),
+                          SizedBox(width: 10),
+                          Text('إدارة الأصناف'),
+                        ],
+                      ),
+                    ),
+                  if (role == Role.admin || role == Role.moderator)
+                    ListTile(
+                      onTap: () => Navigator.popAndPushNamed(context, '/invoices'),
+                      title: const Row(
+                        children: [
+                          Icon(CupertinoIcons.doc),
+                          SizedBox(width: 10),
+                          Text('إدارة الفواتير'),
+                        ],
+                      ),
+                    ),
+                  if (role == Role.admin)
+                    ListTile(
+                      onTap: () => Navigator.popAndPushNamed(context, '/appearance'),
+                      title: const Row(
+                        children: [
+                          Icon(Icons.color_lens_outlined),
+                          SizedBox(width: 10),
+                          Text('إدارة المظهر'),
+                        ],
+                      ),
+                    ),
+                  if (role == Role.admin)
+                    ListTile(
+                      onTap: () => Navigator.popAndPushNamed(context, '/users'),
+                      title: const Row(
+                        children: [
+                          Icon(Icons.supervised_user_circle_outlined),
+                          SizedBox(width: 10),
+                          Text('إدارة المستخدمين'),
+                        ],
+                      ),
+                    ),
+                  if (role == Role.admin)
+                    ListTile(
+                      onTap: () => Navigator.popAndPushNamed(context, '/reports'),
+                      title: const Row(
+                        children: [
+                          Icon(CupertinoIcons.doc_chart),
+                          SizedBox(width: 10),
+                          Text('التقارير'),
+                        ],
+                      ),
+                    ),
+                  ListTile(
+                    onTap: () => Navigator.popAndPushNamed(context, '/license'),
+                    title: const Row(
+                      children: [
+                        Icon(Icons.local_police_outlined),
+                        SizedBox(width: 10),
+                        Text('شروط الاستخدام والترخيص'),
+                      ],
+                    ),
+                  ),
+                  ListTile(
+                    onTap: () {
+                      showAboutDialog(context: context);
+                      // Navigator.popAndPushNamed(context, '/about');
+                    },
+                    title: const Row(
+                      children: [
+                        Icon(Icons.info_outline),
+                        SizedBox(width: 10),
+                        Text('حول'),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
         const SizedBox(height: 8),
@@ -202,4 +308,11 @@ Iterable<Item> filter(Iterable<Item> items, String searchText) {
   return items.where((item) {
     return searchText.containEachOtherIgnoreCase(item.name);
   }).toList();
+}
+
+void login(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (context) => const Dialog(child: LoginForm()),
+  );
 }

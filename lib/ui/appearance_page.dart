@@ -1,8 +1,8 @@
-import 'package:arabiya/db/db.dart';
-import 'package:arabiya/models/item.dart';
-import 'package:arabiya/ui/widgets/custom_indicator.dart';
-import 'package:arabiya/ui/home_page.dart';
-import 'package:arabiya/utils.dart';
+import 'package:manassa_e_commerce/db/db.dart';
+import 'package:manassa_e_commerce/models/item.dart';
+import 'package:manassa_e_commerce/ui/widgets/custom_indicator.dart';
+import 'package:manassa_e_commerce/ui/home_page.dart';
+import 'package:manassa_e_commerce/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -59,13 +59,41 @@ class AppearancePage extends StatelessWidget {
                     constraints.isSmall ? const TabBar(tabs: [Tab(text: 'الأصناف التي سيتم عرضها'), Tab(text: 'الأصناف التي لن يتم عرضها')]) : null,
               ),
               drawer: drawer(context),
-              body: Builder(builder: (context) {
+              body: LayoutBuilder(builder: (context, constraints) {
                 if (constraints.isSmall) {
-                  return const TabBarView(children: [SelectedItems(), UnselectedItems()]);
+                  return SizedBox(
+                      height: constraints.maxHeight,
+                      child: const TabBarView(children: [
+                        Flex(direction: Axis.vertical, children: [SelectedItems()]),
+                        Flex(direction: Axis.vertical, children: [UnselectedItems()])
+                      ]));
                 } else {
                   return widget;
                 }
               }),
+              floatingActionButton: Consumer(
+                builder: (BuildContext context, WidgetRef ref, Widget? child) {
+                  return FloatingActionButton(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    onPressed: () async {
+                      final selectedItems = ref.watch(selectedItemsProvider);
+                      try {
+                        final data = {'items': selectedItems.map((item) => item.id).toList()};
+                        await Database.updateHomePageData(data);
+                        if (context.mounted) {
+                          showDialog(context: context, builder: (context) => const SuccessDialog());
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          showDialog(context: context, builder: (context) => const SuccessDialog());
+                        }
+                      }
+                    },
+                    child: const Icon(Icons.save_outlined),
+                  );
+                },
+              ),
             ),
           );
         },
@@ -84,9 +112,9 @@ class AppearanceView extends ConsumerWidget {
     return Stack(
       children: [
         if (!isLoading)
-          Column(
+          const Column(
             children: [
-              const Expanded(
+              Expanded(
                 child: Row(
                   children: [
                     SelectedItems(),
@@ -95,32 +123,7 @@ class AppearanceView extends ConsumerWidget {
                   ],
                 ),
               ),
-              const Divider(height: 0),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Consumer(builder: (context, ref, child) {
-                    return ElevatedButton(
-                      onPressed: () async {
-                        final selectedItems = ref.watch(selectedItemsProvider);
-                        try {
-                          final data = {'items': selectedItems.map((item) => item.id).toList()};
-                          await Database.updateHomePageData(data);
-                          if (context.mounted) {
-                            showDialog(context: context, builder: (context) => const SuccessDialog());
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            showDialog(context: context, builder: (context) => const SuccessDialog());
-                          }
-                        }
-                      },
-                      child: const Text('حفظ التغييرات'),
-                    );
-                  }),
-                ),
-              ),
+              Divider(height: 0),
             ],
           )
         else
@@ -181,6 +184,54 @@ class SelectedItems extends StatelessWidget {
           }
         },
       ),
+    );
+  }
+
+  Widget body() {
+    return Consumer(
+      builder: (context, ref, child) {
+        final selectedItemsAsync = ref.watch(selectedItemsProvider);
+        final isLoading = ref.watch(allItemsProvider).isLoading || ref.watch(homePageItemsProvider).isLoading;
+        final selectedItems = selectedItemsAsync;
+
+        if (!isLoading) {
+          return selectedItems.isEmpty
+              ? const Center(child: Text('لا توجد أصناف لعرضها هنا.'))
+              : ReorderableListView(
+                  onReorder: (int oldIndex, int newIndex) {
+                    ref.read(selectedItemsProvider.notifier).reorderItems(oldIndex, newIndex);
+                  },
+                  children: [
+                    for (final item in selectedItems)
+                      ListTile(
+                        key: ValueKey(item.id),
+                        title: Text(item.name),
+                        trailing: SizedBox(
+                          width: 75,
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 32.0),
+                            child: TextButton(
+                              style: ButtonStyle(
+                                foregroundColor: WidgetStateProperty.all<Color?>(Colors.redAccent),
+                                shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                                  RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    side: const BorderSide(color: Colors.redAccent, strokeAlign: 1),
+                                  ),
+                                ),
+                              ),
+                              onPressed: () => ref.read(selectedItemsProvider.notifier).removeItem(item),
+                              child: const Text('حذف'),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+        } else {
+          return const CustomIndicator();
+        }
+      },
     );
   }
 }

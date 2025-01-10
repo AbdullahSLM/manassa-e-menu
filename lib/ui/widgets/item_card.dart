@@ -1,9 +1,9 @@
-import 'package:arabiya/db/db.dart';
-import 'package:arabiya/models/item.dart';
-import 'package:arabiya/models/invoice_item.dart';
-import 'package:arabiya/ui/cart_notifier.dart';
-import 'package:arabiya/ui/invoice_viewer.dart';
-import 'package:arabiya/ui/widgets/item_view.dart';
+import 'package:manassa_e_commerce/db/db.dart';
+import 'package:manassa_e_commerce/models/item.dart';
+import 'package:manassa_e_commerce/models/invoice_item.dart';
+import 'package:manassa_e_commerce/ui/cart_notifier.dart';
+import 'package:manassa_e_commerce/ui/invoice_viewer.dart';
+import 'package:manassa_e_commerce/ui/widgets/item_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

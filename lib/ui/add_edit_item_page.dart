@@ -1,14 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:arabiya/db/db.dart';
-import 'package:arabiya/models/item.dart';
-import 'package:arabiya/ui/app.dart';
-import 'package:arabiya/ui/appearance_page.dart';
-import 'package:arabiya/ui/widgets/custom_indicator.dart';
-import 'package:arabiya/utils.dart';
+import 'package:manassa_e_commerce/db/db.dart';
+import 'package:manassa_e_commerce/models/item.dart';
+import 'package:manassa_e_commerce/ui/app.dart';
+import 'package:manassa_e_commerce/ui/appearance_page.dart';
+import 'package:manassa_e_commerce/ui/widgets/custom_indicator.dart';
+import 'package:manassa_e_commerce/utils.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -95,9 +94,8 @@ class _AddEditItemPage extends StatelessWidget {
             actions: [
               Consumer(builder: (context, ref, child) {
                 return IconButton(
-                  onPressed: ref.watch(_canSave)
+                  onPressed: ref.watch(_canSave) && ref.watch(_currentItem).images.isNotEmpty
                       ? () {
-                          print(ref.read(_currentItem));
                           final future = Database.addUpdateItem(ref.read(_currentItem));
 
                           future.catchError((error, stacktrace) {
@@ -120,19 +118,9 @@ class _AddEditItemPage extends StatelessWidget {
                 );
               }),
             ],
-            bottom: const TabBar(
-              tabs: [
-                Tab(text: 'مرئي'),
-                Tab(text: 'JSON'),
-              ],
-            ),
           ),
-          body: const TabBarView(
-            children: [
-              _VisualFormItem(),
-              _JsonFormItem(),
-            ],
-          ),
+          body: const _VisualFormItem(),
+          // _JsonFormItem(),
         ),
       ),
     );
@@ -209,13 +197,17 @@ class _VisualFormItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer(builder: (context, ref, child) {
       final originalItem = ref.watch(_originalItem);
-      print(originalItem);
       return SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(
+                'الحقل الذي يحتوي على رمز النجمة   ( * )   إلزامي',
+                style: TextStyle(color: Colors.red[200], fontWeight: FontWeight.w100),
+              ),
+              const SizedBox(height: 16),
               // Name Field
               TextFormField(
                 key: GlobalKey(),
@@ -223,7 +215,7 @@ class _VisualFormItem extends StatelessWidget {
                 initialValue: originalItem.name,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
-                  labelText: 'الإسم',
+                  labelText: 'الإسم *',
                   filled: true,
                 ),
                 onChanged: (txt) {
@@ -234,14 +226,14 @@ class _VisualFormItem extends StatelessWidget {
               const SizedBox(height: 24),
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 4.0),
-                child: Text('صور المنتج'),
+                child: Text('صور المنتج *'),
               ),
               // List of images
               SizedBox(
                 height: 160,
                 child: Consumer(
                   builder: (context, ref, child) {
-                    final images = ref.watch(_currentItem.select((item) => item.images));
+                    final List<Manassa_e_commerceImages> images = ref.watch(_currentItem.select((item) => item.images.isNotEmpty ? item.images : []));
                     return ListView(
                       scrollDirection: Axis.horizontal,
                       children: [
@@ -301,12 +293,12 @@ class _VisualFormItem extends StatelessWidget {
                                             fit: BoxFit.scaleDown,
                                             placeholder: (_, __) => const CustomIndicator(),
                                             errorWidget: (context, error, stackTrace) {
-                                              return const SizedBox(
+                                              return SizedBox(
                                                 height: 100,
                                                 child: Center(
                                                   child: Text(
-                                                    'خطأ في تحميل الصورة',
-                                                    style: TextStyle(color: Colors.red),
+                                                    'تعذر تحميل الصورة',
+                                                    style: TextStyle(color: Colors.red[200]),
                                                     textAlign: TextAlign.center,
                                                   ),
                                                 ),
@@ -474,7 +466,7 @@ class _VisualFormItem extends StatelessWidget {
                   Flexible(
                     child: TextFormField(
                       key: GlobalKey(),
-                      initialValue: originalItem.price != null && originalItem.price != 0 ? '${originalItem.price}' : null,
+                      initialValue: originalItem.price != 0 ? '${originalItem.price}' : null,
                       keyboardType: TextInputType.number,
                       inputFormatters: <TextInputFormatter>[FilteringTextInputFormatter.digitsOnly],
                       decoration: const InputDecoration(
@@ -537,8 +529,8 @@ class _VisualFormItem extends StatelessWidget {
 
   Future<void> _showImageDialog(
     BuildContext context, {
-    ArabiyaImages? image,
-    required void Function(ArabiyaImages) onSave,
+    Manassa_e_commerceImages? image,
+    required void Function(Manassa_e_commerceImages) onSave,
   }) async {
     final TextEditingController thumbController = TextEditingController(
       text: image?.thumbImage ?? '',
@@ -583,7 +575,7 @@ class _VisualFormItem extends StatelessWidget {
               TextButton(
                 child: const Text('حفظ'),
                 onPressed: () {
-                  final updatedImage = ArabiyaImages(
+                  final updatedImage = Manassa_e_commerceImages(
                     thumbImage: thumbController.text,
                     fullHDImage: fullHDController.text,
                   );

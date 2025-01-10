@@ -1,5 +1,5 @@
-import 'package:arabiya/models/item.dart';
-import 'package:arabiya/ui/widgets/item_card.dart';
+import 'package:manassa_e_commerce/models/item.dart';
+import 'package:manassa_e_commerce/ui/widgets/item_card.dart';
 import 'package:flutter/material.dart';
 
 class ItemsGridView extends StatelessWidget {

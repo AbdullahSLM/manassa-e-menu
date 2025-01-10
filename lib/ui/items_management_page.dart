@@ -1,9 +1,7 @@
-import 'package:arabiya/db/db.dart';
-import 'package:arabiya/ui/widgets/custom_indicator.dart';
-import 'package:arabiya/ui/home_page.dart';
-import 'package:arabiya/ui/reports_page.dart';
-import 'package:arabiya/ui/widgets/items_grid_view.dart';
-import 'package:arabiya/utils.dart';
+import 'package:manassa_e_commerce/db/db.dart';
+import 'package:manassa_e_commerce/ui/widgets/custom_indicator.dart';
+import 'package:manassa_e_commerce/ui/home_page.dart';
+import 'package:manassa_e_commerce/ui/widgets/items_grid_view.dart';
 import 'package:flutter/material.dart';
 
 class ItemsManagementPage extends StatelessWidget {
@@ -15,7 +13,7 @@ class ItemsManagementPage extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Scaffold(
-          appBar: AppBar(title: const Text('صفحة إدارة المنتجات')),
+          appBar: AppBar(title: const Text('صفحة إدارة الأصناف')),
           drawer: drawer(context),
           floatingActionButton: FloatingActionButton(
             onPressed: () => Navigator.pushNamed(context, '/add-item'),
@@ -40,7 +38,6 @@ class ItemsManagementView extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           if (snapshot.hasData) {
-            print('data');
             return SingleChildScrollView(
               child: ItemsGridView(items: snapshot.requireData, editable: true),
             );

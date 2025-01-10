@@ -1,6 +1,7 @@
-import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' as foundation;
 import 'package:flutter/material.dart';
-import 'dart:html' as html;
+import 'package:crypto/crypto.dart';
 import 'dart:convert';
 import 'dart:math';
 
@@ -49,12 +50,12 @@ class Utils {
     return const JsonEncoder.withIndent('  ').convert(json);
   }
 
-  static String getReadableDate(DateTime dateTime) {
-    var y = _fourDigits(dateTime.year);
-    var m = _twoDigits(dateTime.month);
-    var d = _twoDigits(dateTime.day);
-    var h = _twoDigits(dateTime.hour);
-    var min = _twoDigits(dateTime.minute);
+  static String getReadableDate(Timestamp timestamp) {
+    var y = _fourDigits(timestamp.toDate().year);
+    var m = _twoDigits(timestamp.toDate().month);
+    var d = _twoDigits(timestamp.toDate().day);
+    var h = _twoDigits(timestamp.toDate().hour);
+    var min = _twoDigits(timestamp.toDate().minute);
 
     return '$y-$m-$d  $h:$min';
   }
@@ -109,6 +110,16 @@ class Utils {
       }
     }
     return list;
+  }
+
+  static String hashPassword(String password) {
+    var bytes = utf8.encode(password); // Convert password to UTF8
+    var digest = sha256.convert(bytes); // Hash it using SHA-256
+    return digest.toString();
+  }
+
+  static bool verifyPassword(String password, String hashedPassword) {
+    return hashPassword(password) == hashedPassword;
   }
 }
 
@@ -220,7 +231,9 @@ abstract class Enum {
 
 typedef JsonMap = Map<String, dynamic>;
 
-String get baseUrl => html.window.location.origin;
+String get baseUrl {
+  return "https://base-url.com";
+}
 
 String readableMoney(double money, {int fractionDigits = 3}) {
   return double2String(money, fractionDigits: fractionDigits);
@@ -255,7 +268,7 @@ enum ScreenType {
   large;
 
   static ScreenType type(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
+    final width = MediaQuery.sizeOf(context).width;
     if (isSmall(width)) return ScreenType.small;
     if (isMiddle(width)) return ScreenType.middle;
     if (isLarge(width)) return ScreenType.large;
@@ -329,7 +342,7 @@ int levenshtein(String s1, String s2) {
 }
 
 void debug(Object? obj) {
-  if (kDebugMode) print(obj);
+  if (foundation.kDebugMode) print(obj);
 }
 
 extension MyExt on BoxConstraints {
@@ -343,3 +356,5 @@ extension MyExt on BoxConstraints {
 
   bool get isLarge => ScreenType.isLarge(maxWidth);
 }
+
+final emailRegex = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
