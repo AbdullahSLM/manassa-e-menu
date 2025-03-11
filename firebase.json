@@ -1,1 +1,35 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"manassa-e-commerce","appId":"1:31620116932:android:17aafc2314dd703a98f491","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"manassa-e-commerce","configurations":{"android":"1:31620116932:android:17aafc2314dd703a98f491","web":"1:31620116932:web:4898aafd37300bd198f491"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "manassa-e-menu",
+          "appId": "1:31620116932:android:17aafc2314dd703a98f491",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "manassa-e-menu",
+          "configurations": {
+            "web": "1:608399313226:web:ab15bd97f681820003d9b3"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
