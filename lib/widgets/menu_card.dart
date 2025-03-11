@@ -22,8 +22,10 @@ class MenuCard extends StatelessWidget {
         );
       },
       child: Card(
+        color: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 4,
+        elevation: 3,
+        margin: const EdgeInsets.all(5),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(

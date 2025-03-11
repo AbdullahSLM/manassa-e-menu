@@ -23,7 +23,7 @@ class ItemCardAdmin extends StatelessWidget {
           ),
           TextButton(
             onPressed: () {
-              FirestoreService().deleteRestaurant(itemId);
+              FirestoreService().deleteMenuItem(categoryId, itemId); // ✅ تم تصحيح استدعاء الحذف
               Navigator.pop(context);
             },
             child: const Text('حذف', style: TextStyle(color: Colors.red)),
@@ -96,7 +96,6 @@ class ItemCardAdmin extends StatelessWidget {
                 // زر الحذف
                 TextButton(
                   onPressed: () {
-                    // تنفيذ عملية الحذف
                     _confirmDelete(context, item.id);
                   },
                   child: const Text('حذف', style: TextStyle(color: Colors.red)),

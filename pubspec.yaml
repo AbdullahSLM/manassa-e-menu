@@ -77,7 +77,6 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^3.0.0
 
-  flutter_launcher_icons: ^0.14.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -97,6 +96,10 @@ flutter:
   assets:
     - assets/vectors/
     - assets/images/
+    - assets/images/logo.png
+    - assets/images/logo.webp
+    - assets/images/white_logo.png
+    - assets/images/white_logo.webp
     - assets/fonts/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
@@ -155,9 +158,9 @@ flutter:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/logo.png"
+  image_path: "assets/images/logo.png"
   adaptive_icon_background: "#ffffff"  # خلفية للأيقونات التكيفية (Android)
-  adaptive_icon_foreground: "assets/icon_foreground.png"  # للأندرويد
-
+  adaptive_icon_foreground: "assets/images/logo.png"  # للأندرويد
+  remove_alpha_ios: true  # حل مشكلة قناة ألفا على iOS
 
 

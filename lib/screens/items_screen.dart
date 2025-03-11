@@ -52,40 +52,45 @@ class _ItemsScreenState extends State<ItemsScreen> {
         title: Text('قائمة  ${widget.category.name}'),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(6.0),
-        child: Column(
-          children: [
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.75,
-              child: TextFormField(
-                controller: _searchController,
-                onChanged: _filterItems,
-                decoration: InputDecoration(
-                  labelText: 'بحث عن صنف...',
-                  border: OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            _searchController.clear();
-                            _filterItems('');
-                          },
-                        )
-                      : null,
+      body: SingleChildScrollView(
+        // إضافة SingleChildScrollView لجعل الواجهة قابلة للتمرير بالكامل
+        child: Padding(
+          padding: const EdgeInsets.all(6.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 15),
+              SizedBox(
+                width: MediaQuery.of(context).size.width * 0.75,
+                child: TextFormField(
+                  controller: _searchController,
+                  onChanged: _filterItems,
+                  decoration: InputDecoration(
+                    labelText: 'بحث عن صنف...',
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchController.clear();
+                              _filterItems('');
+                            },
+                          )
+                        : null,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  int crossAxisCount =
-                      Utils.calculateCrossAxisCount(constraints.maxWidth);
-                  return _filteredItems.isEmpty
-                      ? const Center(child: Text("لا توجد نتائج مطابقة."))
-                      : GridView.builder(
+              const SizedBox(height: 16),
+
+              // عرض العناصر في GridView ضمن SingleChildScrollView
+              _filteredItems.isEmpty
+                  ? const Center(child: Text("لا توجد نتائج مطابقة."))
+                  : LayoutBuilder(
+                      builder: (context, constraints) {
+                        int crossAxisCount =
+                            Utils.calculateCrossAxisCount(constraints.maxWidth);
+                        return GridView.builder(
+                          padding: const EdgeInsets.all(6.0),
                           gridDelegate:
                               SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: crossAxisCount,
@@ -94,6 +99,10 @@ class _ItemsScreenState extends State<ItemsScreen> {
                             childAspectRatio: 0.85,
                           ),
                           itemCount: _filteredItems.length,
+                          shrinkWrap: true,
+                          // تأكيد على أن GridView يتناسب مع حجم المحتوى
+                          physics: NeverScrollableScrollPhysics(),
+                          // تعطيل التمرير في GridView
                           itemBuilder: (context, index) {
                             final item = _filteredItems[index];
                             return ItemCard(
@@ -102,10 +111,10 @@ class _ItemsScreenState extends State<ItemsScreen> {
                             );
                           },
                         );
-                },
-              ),
-            ),
-          ],
+                      },
+                    ),
+            ],
+          ),
         ),
       ),
     );

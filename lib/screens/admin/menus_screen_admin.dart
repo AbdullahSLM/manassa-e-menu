@@ -17,6 +17,7 @@ class MenusScreenAdmin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String qrData = "${Utils.baseURL}/menu/${restaurant.id}";
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: true,
@@ -26,64 +27,22 @@ class MenusScreenAdmin extends StatelessWidget {
         child: StreamBuilder<List<MenuCategory>>(
           stream: FirestoreService().getMenuCategories(restaurant.id),
           builder: (context, snapshot) {
-            if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
             var categories = snapshot.data!;
 
             return LayoutBuilder(
               builder: (context, constraints) {
-                int crossAxisCount = const RestaurantsScreenAdmin().calculateCrossAxisCount(constraints.maxWidth);
+                int crossAxisCount = const RestaurantsScreenAdmin()
+                    .calculateCrossAxisCount(constraints.maxWidth);
 
                 return ListView(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              CachedNetworkImage(
-                                imageUrl: restaurant.image,
-                                height: 100,
-                                width: 100,
-                                fit: BoxFit.cover,
-                              ),
-                              const SizedBox(width: 16),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(6.0),
-                                child: QrImageView(
-                                  data: qrData,
-                                  size: 100.0,
-                                  backgroundColor: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            "مرحبًا بك في ${restaurant.name}!",
-                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          const Text("اختر القسم المناسب من القائمة أدناه."),
-                        ],
-                      ),
-                    ),
+                    _buildHeader(context, qrData),
                     const SizedBox(height: 10),
-
-                    // قائمة الفئات
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: crossAxisCount, crossAxisSpacing: 10, mainAxisSpacing: 10, childAspectRatio: 0.85),
-                      itemCount: categories.length,
-                      itemBuilder: (context, index) {
-                        return MenuCardAdmin(
-                          category: categories[index],
-                          restaurantId: restaurant.id,
-                        );
-                      },
-                    ),
+                    _buildCategoryGrid(categories, crossAxisCount),
                   ],
                 );
               },
@@ -102,6 +61,62 @@ class MenusScreenAdmin extends StatelessWidget {
         },
         child: const Icon(Icons.add),
       ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context, String qrData) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CachedNetworkImage(
+                imageUrl: restaurant.image,
+                height: 100,
+                width: 100,
+                fit: BoxFit.cover,
+              ),
+              const SizedBox(width: 16),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6.0),
+                child: QrImageView(
+                  data: qrData,
+                  size: 100.0,
+                  backgroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            "مرحبًا بك في ${restaurant.name}!",
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const Text("اختر القسم المناسب من القائمة أدناه."),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryGrid(List<MenuCategory> categories, int crossAxisCount) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.85,
+      ),
+      itemCount: categories.length,
+      itemBuilder: (context, index) {
+        return MenuCardAdmin(
+          category: categories[index],
+          restaurantId: restaurant.id,
+        );
+      },
     );
   }
 }

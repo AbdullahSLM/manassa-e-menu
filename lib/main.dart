@@ -7,7 +7,6 @@ import 'package:manassa_e_menu/screens/admin/restaurants_screen_admin.dart';
 import 'package:manassa_e_menu/screens/menus_screen.dart';
 import 'package:manassa_e_menu/screens/restaurants_screen.dart';
 import 'package:manassa_e_menu/services/firestore_service.dart';
-
 import 'firebase_options.dart';
 
 void main() async {
@@ -23,11 +22,18 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      title: 'منيو المطاعم',
+      title: 'Hubفود',
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white,
-        appBarTheme: const AppBarTheme(color: Colors.white),
-        primarySwatch: Colors.blue,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.red,
+          foregroundColor: Colors.white,
+        ),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.red,
+          primary: Colors.red,
+        ),
+        useMaterial3: true,
         fontFamily: 'DG Heaven',
       ),
       locale: const Locale('ar', 'LY'),
@@ -47,6 +53,7 @@ class MyApp extends StatelessWidget {
 
 final GoRouter _router = GoRouter(
   routes: [
+    // صفحات المدير
     GoRoute(
       path: '/admin',
       builder: (context, state) => const Directionality(
@@ -54,6 +61,28 @@ final GoRouter _router = GoRouter(
         child: RestaurantsScreenAdmin(),
       ),
     ),
+    // GoRoute(
+    //   path: '/admin/menu/:restaurantId',
+    //   builder: (context, state) {
+    //     final restaurantId = state.pathParameters['restaurantId']!;
+    //     return Directionality(
+    //       textDirection: TextDirection.rtl,
+    //       child: MenusScreenAdmin(restaurantId: restaurantId),  // تمرير معرف المطعم
+    //     );
+    //   },
+    // ),
+    // GoRoute(
+    //   path: '/admin/items/:menuId',
+    //   builder: (context, state) {
+    //     final menuId = state.pathParameters['menuId']!;
+    //     return Directionality(
+    //       textDirection: TextDirection.rtl,
+    //       child: ItemsScreenAdmin(category: null),  // تعديل هنا إذا كان هناك فئة محددة
+    //     );
+    //   },
+    // ),
+
+    // صفحات الزبون
     GoRoute(
       path: '/',
       builder: (context, state) => const Directionality(
@@ -68,7 +97,9 @@ final GoRouter _router = GoRouter(
         return FutureBuilder<Restaurant?>(
           future: FirestoreService().getRestaurant(restaurantId),
           builder: (context, snapshot) {
-            if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
             return Directionality(
               textDirection: TextDirection.rtl,
               child: MenusScreen(restaurant: snapshot.data!),
@@ -77,5 +108,23 @@ final GoRouter _router = GoRouter(
         );
       },
     ),
+    // GoRoute(
+    //   path: '/items/:menuId',
+    //   builder: (context, state) {
+    //     final menuId = state.pathParameters['menuId']!;
+    //     return StreamBuilder<List<Item>>(
+    //       stream: FirestoreService().getMenuItems(menuId),
+    //       builder: (context, snapshot) {
+    //         if (!snapshot.hasData) {
+    //           return const Center(child: CircularProgressIndicator());
+    //         }
+    //         return Directionality(
+    //           textDirection: TextDirection.rtl,
+    //           child: ItemsScreen(category: snapshot.data!), // تمرير البيانات للصفحة
+    //         );
+    //       },
+    //     );
+    //   },
+    // ),
   ],
 );

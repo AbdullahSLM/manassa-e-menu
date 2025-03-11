@@ -26,9 +26,15 @@ class _EditItemScreenState extends State<EditItemScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.item?.name ?? '');
-    _descriptionController = TextEditingController(text: widget.item?.description ?? '');
-    _priceController = TextEditingController(text: widget.item?.price?.toString() ?? '');
+    _descriptionController =
+        TextEditingController(text: widget.item?.description ?? '');
+    _priceController =
+        TextEditingController(text: widget.item?.price.toString() ?? '');
     _imageController = TextEditingController(text: widget.item?.image ?? '');
+
+    _imageController.addListener(() {
+      if (mounted) setState(() {}); // تحديث عند تغيير رابط الصورة
+    });
   }
 
   @override
@@ -56,11 +62,15 @@ class _EditItemScreenState extends State<EditItemScreen> {
       );
 
       await FirestoreService().saveMenuItem(newItem);
+
+      if (!mounted) {
+        return; // ✅ التأكد من أن الصفحة لا تزال نشطة قبل استخدام Navigator
+      }
       Navigator.pop(context);
     } catch (e) {
-      _showErrorMessage("فشل في حفظ الصنف. حاول مرة أخرى.");
+      if (mounted) _showErrorMessage("فشل في حفظ الصنف. حاول مرة أخرى.");
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -74,7 +84,9 @@ class _EditItemScreenState extends State<EditItemScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.item == null ? 'إضافة صنف' : 'تعديل ${_nameController.text}'),
+        title: Text(widget.item == null
+            ? 'إضافة صنف'
+            : 'تعديل ${_nameController.text}'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -85,79 +97,35 @@ class _EditItemScreenState extends State<EditItemScreen> {
               Expanded(
                 child: ListView(
                   children: [
-                    // اسم الصنف
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'اسم الصنف',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) => value!.isEmpty ? 'يرجى إدخال اسم الصنف' : null,
-                    ),
+                    _buildTextField(
+                        _nameController, 'اسم الصنف', 'يرجى إدخال اسم الصنف'),
                     const SizedBox(height: 12),
-
-                    // وصف الصنف
-                    TextFormField(
-                      controller: _descriptionController,
-                      decoration: const InputDecoration(
-                        labelText: 'الوصف',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
+                    _buildTextField(_descriptionController, 'الوصف', null),
                     const SizedBox(height: 12),
-
-                    // السعر
-                    TextFormField(
-                      controller: _priceController,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'السعر',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (value!.isEmpty) return 'يرجى إدخال السعر';
-                        if (double.tryParse(value) == null) return 'يرجى إدخال قيمة صحيحة';
-                        return null;
-                      },
-                    ),
+                    _buildTextField(
+                        _priceController, 'السعر', 'يرجى إدخال السعر',
+                        isNumeric: true),
                     const SizedBox(height: 12),
-
-                    // رابط الصورة
-                    TextFormField(
-                      controller: _imageController,
-                      decoration: const InputDecoration(
-                        labelText: 'رابط الصورة',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) => value!.isEmpty ? 'يرجى إدخال رابط الصورة' : null,
-                      onChanged: (value) => setState(() {}),
-                    ),
+                    _buildTextField(_imageController, 'رابط الصورة',
+                        'يرجى إدخال رابط الصورة'),
                     const SizedBox(height: 12),
-
-                    // عرض الصورة إذا كان هناك رابط صالح
                     if (_imageController.text.isNotEmpty)
-                      Builder(
-                        builder: (context) {
-                          double widthOfScreen = MediaQuery.sizeOf(context).width;
-                          return SizedBox(
-                            height: widthOfScreen / 2,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8.0),
-                              child: CachedNetworkImage(
-                                fit: BoxFit.cover,
-                                imageUrl: _imageController.text,
-                                errorWidget: (context, url, error) => const Icon(Icons.broken_image, size: 100, color: Colors.grey),
-                              ),
-                            ),
-                          );
-                        },
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: CachedNetworkImage(
+                          height: MediaQuery.of(context).size.width / 2,
+                          fit: BoxFit.cover,
+                          imageUrl: _imageController.text,
+                          errorWidget: (context, url, error) => const Icon(
+                              Icons.broken_image,
+                              size: 100,
+                              color: Colors.grey),
+                        ),
                       ),
                     const SizedBox(height: 20),
                   ],
                 ),
               ),
-
-              // زر الحفظ
               Row(
                 children: [
                   Expanded(
@@ -166,11 +134,16 @@ class _EditItemScreenState extends State<EditItemScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green.shade700,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
                       ),
                       child: _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text('حفظ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                          : const Text('حفظ',
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white)),
                     ),
                   ),
                 ],
@@ -179,6 +152,28 @@ class _EditItemScreenState extends State<EditItemScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField(
+      TextEditingController controller, String label, String? errorMessage,
+      {bool isNumeric = false}) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+      ),
+      validator: (value) {
+        if (errorMessage != null && (value == null || value.trim().isEmpty)) {
+          return errorMessage;
+        }
+        if (isNumeric && value != null && double.tryParse(value) == null) {
+          return 'يرجى إدخال قيمة صحيحة';
+        }
+        return null;
+      },
     );
   }
 }

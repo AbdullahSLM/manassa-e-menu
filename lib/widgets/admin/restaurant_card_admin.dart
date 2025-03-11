@@ -1,16 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:manassa_e_menu/models/restaurant_model.dart';
 import 'package:manassa_e_menu/screens/edit_restaurant_screen.dart';
-
-import '../../models/restaurant_model.dart';
-import '../../services/firestore_service.dart';
+import 'package:manassa_e_menu/services/firestore_service.dart';
 
 class RestaurantCardAdmin extends StatelessWidget {
   final Restaurant restaurant;
 
-  RestaurantCardAdmin({super.key, required this.restaurant});
-
-  final FirestoreService _firestoreService = FirestoreService();
+  const RestaurantCardAdmin({super.key, required this.restaurant});
 
   void _confirmDelete(BuildContext context, String restaurantId) {
     showDialog(
@@ -55,10 +52,12 @@ class RestaurantCardAdmin extends StatelessWidget {
                     imageUrl: restaurant.image,
                     fit: BoxFit.cover,
                     width: double.infinity,
-                    placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                    placeholder: (context, url) =>
+                        const Center(child: CircularProgressIndicator()),
                     errorWidget: (context, url, error) => Container(
                       color: Colors.grey[300],
-                      child: const Icon(Icons.broken_image, size: 100, color: Colors.grey),
+                      child: const Icon(Icons.broken_image,
+                          size: 100, color: Colors.grey),
                     ),
                   ),
                 ),
@@ -70,12 +69,16 @@ class RestaurantCardAdmin extends StatelessWidget {
               children: [
                 Text(
                   restaurant.name,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      fontSize: 14, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
                 Text(
                   restaurant.address,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: Colors.grey),
+                  style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.grey),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -90,7 +93,8 @@ class RestaurantCardAdmin extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => EditRestaurantScreen(restaurant: restaurant),
+                        builder: (_) =>
+                            EditRestaurantScreen(restaurant: restaurant),
                       ),
                     );
                   },

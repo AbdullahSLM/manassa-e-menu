@@ -11,22 +11,34 @@ class Restaurant {
     required this.address,
   });
 
-  // تحويل البيانات من Firestore إلى نموذج Restaurant
-  factory Restaurant.fromFirestore(Map<String, dynamic> data, String documentId) {
+  factory Restaurant.fromFirestore(Map<String, dynamic> data, String id) {
     return Restaurant(
-      id: documentId,
-      name: data['name'] ?? '',
-      image: data['image'] ?? '',
-      address: data['address'] ?? '',
+      id: id,
+      name: data['name'] as String? ?? '',
+      image: data['image'] as String? ?? '',
+      address: data['address'] as String? ?? '',
     );
   }
 
-  // تحويل نموذج Restaurant إلى صيغة يمكن تخزينها في Firestore
   Map<String, dynamic> toFirestore() {
     return {
       'name': name,
       'image': image,
       'address': address,
     };
+  }
+
+  Restaurant copyWith({
+    String? id,
+    String? name,
+    String? image,
+    String? address,
+  }) {
+    return Restaurant(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      image: image ?? this.image,
+      address: address ?? this.address,
+    );
   }
 }
