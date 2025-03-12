@@ -111,6 +111,7 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
+                                    settings: const RouteSettings(name: ''),
                                       builder: (_) =>
                                           MenusScreen(restaurant: restaurant)),
                                 );

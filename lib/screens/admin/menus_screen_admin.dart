@@ -16,7 +16,7 @@ class MenusScreenAdmin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String qrData = "${Utils.baseURL}/menu/${restaurant.id}";
+    String qrData = "${Utils.baseURL}/admin/menu/${restaurant.id}";
 
     return Scaffold(
       appBar: AppBar(

@@ -5,6 +5,7 @@ import '../models/item_model.dart';
 import '../models/menu_category_model.dart';
 import '../models/restaurant_model.dart';
 
+@immutable
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
@@ -12,7 +13,7 @@ class FirestoreService {
   // 🔹 إدارة المطاعم
   // ==========================
 
-  // جلب قائمة المطاعم
+  /// جلب قائمة المطاعم
   Stream<List<Restaurant>> getRestaurants() {
     return _db.collection('restaurants').snapshots().map((snapshot) {
       return snapshot.docs
@@ -21,7 +22,7 @@ class FirestoreService {
     });
   }
 
-  // جلب بيانات مطعم معين
+  /// جلب بيانات مطعم معين
   Future<Restaurant?> getRestaurant(String restaurantId) async {
     try {
       var doc = await _db.collection('restaurants').doc(restaurantId).get();
@@ -29,13 +30,12 @@ class FirestoreService {
         return Restaurant.fromFirestore(doc.data()!, doc.id);
       }
     } catch (e) {
-      // هنا يمكنك تسجيل الخطأ أو إدارته بطريقة أخرى
       print('Error getting restaurant: $e');
     }
     return null;
   }
 
-  // إضافة أو تعديل مطعم
+  /// إضافة أو تعديل مطعم
   Future<void> saveRestaurant(Restaurant restaurant) async {
     try {
       if (restaurant.id.isEmpty) {
@@ -51,7 +51,7 @@ class FirestoreService {
     }
   }
 
-  // حذف مطعم معين
+  /// حذف مطعم معين
   Future<void> deleteRestaurant(String restaurantId) async {
     try {
       var categoriesSnapshot = await _db
@@ -62,8 +62,7 @@ class FirestoreService {
       WriteBatch batch = _db.batch();
 
       for (var category in categoriesSnapshot.docs) {
-        await deleteMenuCategory(
-            category.id, batch); // حذف القوائم والأصناف باستخدام batch
+        await deleteMenuCategory(category.id, batch);
       }
 
       batch.delete(_db.collection('restaurants').doc(restaurantId));
@@ -77,7 +76,7 @@ class FirestoreService {
   // 🔹 إدارة قوائم الطعام
   // ==========================
 
-  // جلب القوائم لمطعم معين
+  /// جلب القوائم لمطعم معين
   Stream<List<MenuCategory>> getMenuCategories(String restaurantId) {
     return _db
         .collection('restaurants')
@@ -91,7 +90,7 @@ class FirestoreService {
     });
   }
 
-  // جلب صور القوائم لمطعم معين
+  /// جلب صور القوائم لمطعم معين
   Future<List<String>> getMenuImagesForRestaurant(String restaurantId) async {
     List<String> menuImages = [];
     try {
@@ -113,7 +112,7 @@ class FirestoreService {
     return menuImages;
   }
 
-  // جلب جميع صور القوائم
+  /// جلب جميع صور القوائم
   Future<List<String>> getAllMenuImages() async {
     List<String> allMenuImages = [];
     try {
@@ -132,7 +131,7 @@ class FirestoreService {
     return allMenuImages;
   }
 
-  // إضافة أو تعديل قائمة طعام
+  /// إضافة أو تعديل قائمة طعام
   Future<void> saveMenuCategory(MenuCategory category) async {
     try {
       await _db
@@ -148,7 +147,7 @@ class FirestoreService {
     }
   }
 
-  // حذف قائمة طعام معينة
+  /// حذف قائمة طعام معينة
   Future<void> deleteMenuCategory(String categoryId,
       [WriteBatch? batch]) async {
     try {
@@ -161,7 +160,7 @@ class FirestoreService {
       batch ??= _db.batch();
 
       for (var item in itemsSnapshot.docs) {
-        batch.delete(item.reference); // حذف جميع الأصناف داخل القائمة
+        batch.delete(item.reference);
       }
 
       batch.delete(_db.collection('menu_categories').doc(categoryId));
@@ -177,7 +176,7 @@ class FirestoreService {
   // 🔹 إدارة أصناف الطعام
   // ==========================
 
-  // جلب الأصناف لقائمة طعام معينة
+  /// جلب الأصناف لقائمة طعام معينة
   Stream<List<Item>> getMenuItems(String menuId) {
     return _db
         .collection('menu_categories')
@@ -191,7 +190,20 @@ class FirestoreService {
     });
   }
 
-  // إضافة أو تعديل صنف طعام
+  // جلب MenuCategory بناءً على menuId
+  Future<MenuCategory?> getMenuCategory(String menuId) async {
+    try {
+      var doc = await _db.collection('menu_categories').doc(menuId).get();
+      if (doc.exists) {
+        return MenuCategory.fromFirestore(doc.data()!, doc.id);
+      }
+    } catch (e) {
+      print('Error getting menu category: $e');
+    }
+    return null;
+  }
+
+  /// إضافة أو تعديل صنف طعام
   Future<void> saveMenuItem(Item item) async {
     try {
       await _db
@@ -207,7 +219,7 @@ class FirestoreService {
     }
   }
 
-  // حذف صنف معين
+  /// حذف صنف معين
   Future<void> deleteMenuItem(String menuId, String itemId) async {
     try {
       await _db

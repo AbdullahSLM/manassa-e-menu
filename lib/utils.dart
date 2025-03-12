@@ -1,8 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+@immutable
 class Utils {
-  /// 📌 حساب عدد الأعمدة بناءً على عرض الشاشة
+  /// حساب عدد الأعمدة بناءً على عرض الشاشة
   static int calculateCrossAxisCount(double screenWidth) {
     if (screenWidth < 600) {
       return 2;
@@ -17,21 +18,27 @@ class Utils {
     }
   }
 
+  /// الحصول على الرابط الأساسي للتطبيق
   static String get baseURL {
-    return kDebugMode ? "http://192.168.1.12:8080/#" : "https://manassa-e-menu.web.app/#";
+    return kDebugMode
+        ? "http://192.168.1.12:8080/#"
+        : "https://manassa-e-menu.web.app/#";
   }
 
-  static Text get appName{
+  /// الحصول على اسم التطبيق كـ Text
+  static Text get appName {
     return const Text.rich(
       TextSpan(
-          style: TextStyle(fontSize: 50, fontWeight: FontWeight.bold, color: Colors.red),
-          text: 'Hub',
-          children: [
-            TextSpan(
-              style: TextStyle(fontSize: 50, fontWeight: FontWeight.w300, color: Colors.black),
-              text: 'فود',
-            ),
-          ]
+        style: TextStyle(
+            fontSize: 50, fontWeight: FontWeight.bold, color: Colors.red),
+        text: 'Hub',
+        children: [
+          TextSpan(
+            style: TextStyle(
+                fontSize: 50, fontWeight: FontWeight.w300, color: Colors.black),
+            text: 'فود',
+          ),
+        ],
       ),
     );
   }

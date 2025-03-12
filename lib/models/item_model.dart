@@ -1,3 +1,6 @@
+import 'package:flutter/foundation.dart';
+
+@immutable
 class Item {
   final String id;
   final String name;
@@ -6,7 +9,7 @@ class Item {
   final String image;
   final String categoryId;
 
-  Item({
+  const Item({
     required this.id,
     required this.name,
     required this.description,
@@ -52,5 +55,32 @@ class Item {
       image: image ?? this.image,
       categoryId: categoryId ?? this.categoryId,
     );
+  }
+
+  @override
+  String toString() {
+    return 'Item(id: $id, name: $name, description: $description, price: $price, image: $image, categoryId: $categoryId)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is Item &&
+        other.id == id &&
+        other.name == name &&
+        other.description == description &&
+        other.price == price &&
+        other.image == image &&
+        other.categoryId == categoryId;
+  }
+
+  @override
+  int get hashCode {
+    return id.hashCode ^
+        name.hashCode ^
+        description.hashCode ^
+        price.hashCode ^
+        image.hashCode ^
+        categoryId.hashCode;
   }
 }
