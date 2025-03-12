@@ -53,10 +53,13 @@ class MyApp extends StatelessWidget {
       routerConfig: _router,
       builder: (context, child) {
         ErrorWidget.builder = (FlutterErrorDetails errorDetails) {
-          return const Center(
-            child: Text(
-              'حدث خطأ ما! الرجاء المحاولة مرة أخرى.',
-              style: TextStyle(color: Colors.red, fontSize: 18),
+          return const Directionality(
+            textDirection: TextDirection.ltr,
+            child: Center(
+              child: Text(
+                'حدث خطأ ما! الرجاء المحاولة مرة أخرى.',
+                style: TextStyle(color: Colors.red, fontSize: 18),
+              ),
             ),
           );
         };
@@ -67,120 +70,123 @@ class MyApp extends StatelessWidget {
 }
 
 final GoRouter _router = GoRouter(
-  routes: [
+  routes: <RouteBase>[
     // صفحات المدير
     GoRoute(
       path: '/admin',
-      builder: (context, state) => const Directionality(
-        textDirection: TextDirection.rtl,
-        child: RestaurantsScreenAdmin(),
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: const RestaurantsScreenAdmin(),
       ),
     ),
     GoRoute(
       path: '/admin/menu/:restaurantId',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final restaurantId = state.pathParameters['restaurantId']!;
-        return FutureBuilder<Restaurant?>(
-          future: FirestoreService().getRestaurant(restaurantId),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('حدث خطأ: ${snapshot.error}'));
-            } else if (!snapshot.hasData || snapshot.data == null) {
-              return const Center(
+        return MaterialPage(
+          key: state.pageKey,
+          child: FutureBuilder<Restaurant?>(
+            future: FirestoreService().getRestaurant(restaurantId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('حدث خطأ: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data == null) {
+                return const Center(
                   child: Text('المطعم غير موجود',
-                      style: TextStyle(fontFamily: 'DG Heaven')));
-            }
-            return Directionality(
-              textDirection: TextDirection.rtl,
-              child: MenusScreenAdmin(
+                      style: TextStyle(fontFamily: 'DG Heaven')),
+                );
+              }
+              return MenusScreenAdmin(
                 restaurant: snapshot.data!,
-              ),
-            );
-          },
+              );
+            },
+          ),
         );
       },
     ),
     GoRoute(
       path: '/admin/items/:menuId',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final menuId = state.pathParameters['menuId']!;
-        return FutureBuilder<MenuCategory?>(
-          future: FirestoreService().getMenuCategory(menuId),
-          // جلب MenuCategory
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('حدث خطأ: ${snapshot.error}'));
-            } else if (!snapshot.hasData || snapshot.data == null) {
-              return const Center(
+        return MaterialPage(
+          key: state.pageKey,
+          child: FutureBuilder<MenuCategory?>(
+            future: FirestoreService().getMenuCategory(menuId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('حدث خطأ: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data == null) {
+                return const Center(
                   child: Text('القائمة غير موجودة',
-                      style: TextStyle(fontFamily: 'DG Heaven')));
-            }
-            return Directionality(
-              textDirection: TextDirection.rtl,
-              child: ItemsScreenAdmin(category: snapshot.data!),
-            );
-          },
+                      style: TextStyle(fontFamily: 'DG Heaven')),
+                );
+              }
+              return ItemsScreenAdmin(category: snapshot.data!);
+            },
+          ),
         );
       },
     ),
     // صفحات الزبون
     GoRoute(
       path: '/',
-      builder: (context, state) => const Directionality(
-        textDirection: TextDirection.rtl,
-        child: RestaurantsScreen(),
+      pageBuilder: (context, state) => MaterialPage(
+        key: state.pageKey,
+        child: const RestaurantsScreen(),
       ),
     ),
     GoRoute(
+      name: '/menu',
       path: '/menu/:restaurantId',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final restaurantId = state.pathParameters['restaurantId']!;
-        return FutureBuilder<Restaurant?>(
-          future: FirestoreService().getRestaurant(restaurantId),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('حدث خطأ: ${snapshot.error}'));
-            } else if (!snapshot.hasData || snapshot.data == null) {
-              return const Center(
+        return MaterialPage(
+          key: state.pageKey,
+          child: FutureBuilder<Restaurant?>(
+            future: FirestoreService().getRestaurant(restaurantId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('حدث خطأ: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data == null) {
+                return const Center(
                   child: Text('المطعم غير موجود',
-                      style: TextStyle(fontFamily: 'DG Heaven')));
-            }
-            return Directionality(
-              textDirection: TextDirection.rtl,
-              child: MenusScreen(restaurant: snapshot.data!),
-            );
-          },
+                      style: TextStyle(fontFamily: 'DG Heaven')),
+                );
+              }
+              return MenusScreen(restaurant: snapshot.data!);
+            },
+          ),
         );
       },
     ),
     GoRoute(
       path: '/items/:menuId',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final menuId = state.pathParameters['menuId']!;
-        return FutureBuilder<MenuCategory?>(
-          future: FirestoreService().getMenuCategory(menuId),
-          // جلب MenuCategory
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('حدث خطأ: ${snapshot.error}'));
-            } else if (!snapshot.hasData || snapshot.data == null) {
-              return const Center(
+        return MaterialPage(
+          key: state.pageKey,
+          child: FutureBuilder<MenuCategory?>(
+            future: FirestoreService().getMenuCategory(menuId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('حدث خطأ: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data == null) {
+                return const Center(
                   child: Text('القائمة غير موجودة',
-                      style: TextStyle(fontFamily: 'DG Heaven')));
-            }
-            return Directionality(
-              textDirection: TextDirection.rtl,
-              child: ItemsScreen(category: snapshot.data!),
-            );
-          },
+                      style: TextStyle(fontFamily: 'DG Heaven')),
+                );
+              }
+              return ItemsScreen(category: snapshot.data!);
+            },
+          ),
         );
       },
     ),

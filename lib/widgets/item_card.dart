@@ -24,16 +24,20 @@ class ItemCard extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: AspectRatio(
-                  aspectRatio: 1.4, // إبقاء الصورة بحجم مربع
+                  aspectRatio: 1.4,
                   child: CachedNetworkImage(
                     imageUrl: item.image,
                     fit: BoxFit.cover,
                     width: double.infinity,
-                    placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                    placeholder: (context, url) => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
                     errorWidget: (context, url, error) => Container(
                       color: Colors.grey[300],
-                      child: const Icon(Icons.broken_image, size: 100, color: Colors.grey),
+                      child: const Icon(Icons.broken_image,
+                          size: 100, color: Colors.grey),
                     ),
+                    fadeInDuration: const Duration(milliseconds: 500),
                   ),
                 ),
               ),
@@ -43,14 +47,40 @@ class ItemCard extends StatelessWidget {
               children: [
                 Text(
                   item.name,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: Colors.grey),
+                  style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.normal,
+                      color: Colors.grey),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  '${item.price} دينار',
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        // إضافة إجراء عند النقر على الزر
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                      ),
+                      child: const Text(
+                        'المزيد',
+                        style: TextStyle(fontSize: 12, color: Colors.white),
+                      ),
+                    ),
+                    Text(
+                      '${item.price} دينار',
+                      style: const TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
               ],
             ),
