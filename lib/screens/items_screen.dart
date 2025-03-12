@@ -4,6 +4,7 @@ import 'package:manassa_e_menu/models/menu_category_model.dart';
 import 'package:manassa_e_menu/services/firestore_service.dart';
 import 'package:manassa_e_menu/utils.dart';
 import 'package:manassa_e_menu/widgets/item_card.dart';
+import 'package:flutter_shimmer/flutter_shimmer.dart'; // لإضافة ShimmerEffect
 
 class ItemsScreen extends StatefulWidget {
   final MenuCategory category;
@@ -11,13 +12,14 @@ class ItemsScreen extends StatefulWidget {
   const ItemsScreen({super.key, required this.category});
 
   @override
-  _ItemsScreenState createState() => _ItemsScreenState();
+  State<ItemsScreen> createState() => _ItemsScreenState();
 }
 
 class _ItemsScreenState extends State<ItemsScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<Item> _allItems = [];
   List<Item> _filteredItems = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -30,9 +32,20 @@ class _ItemsScreenState extends State<ItemsScreen> {
       setState(() {
         _allItems = items;
         _filteredItems = items;
+        _isLoading = false;
       });
     }, onError: (error) {
-      debugPrint('Error loading items: $error');
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('حدث خطأ أثناء تحميل البيانات: $error'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     });
   }
 
@@ -52,71 +65,77 @@ class _ItemsScreenState extends State<ItemsScreen> {
         title: Text('قائمة  ${widget.category.name}'),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        // إضافة SingleChildScrollView لجعل الواجهة قابلة للتمرير بالكامل
-        child: Padding(
-          padding: const EdgeInsets.all(6.0),
-          child: Column(
-            children: [
-              const SizedBox(height: 15),
-              SizedBox(
-                width: MediaQuery.of(context).size.width * 0.75,
-                child: TextFormField(
-                  controller: _searchController,
-                  onChanged: _filterItems,
-                  decoration: InputDecoration(
-                    labelText: 'بحث عن صنف...',
-                    border: const OutlineInputBorder(),
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                              _filterItems('');
-                            },
-                          )
-                        : null,
+      body: _isLoading
+          ? ListView.builder(
+              itemCount: 5,
+              itemBuilder: (context, index) => const ListTileShimmer(),
+            )
+          : RefreshIndicator(
+              onRefresh: () async {
+                _loadItems();
+              },
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(6.0),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 15),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.75,
+                        child: TextFormField(
+                          controller: _searchController,
+                          onChanged: _filterItems,
+                          decoration: InputDecoration(
+                            labelText: 'بحث عن صنف...',
+                            border: const OutlineInputBorder(),
+                            prefixIcon: const Icon(Icons.search),
+                            suffixIcon: _searchController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      _filterItems('');
+                                    },
+                                  )
+                                : null,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _filteredItems.isEmpty
+                          ? const Center(child: Text("لا توجد نتائج مطابقة."))
+                          : LayoutBuilder(
+                              builder: (context, constraints) {
+                                int crossAxisCount =
+                                    Utils.calculateCrossAxisCount(
+                                        constraints.maxWidth);
+                                return GridView.builder(
+                                  padding: const EdgeInsets.all(6.0),
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: crossAxisCount,
+                                    crossAxisSpacing: 10,
+                                    mainAxisSpacing: 10,
+                                    childAspectRatio: 0.85,
+                                  ),
+                                  itemCount: _filteredItems.length,
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemBuilder: (context, index) {
+                                    final item = _filteredItems[index];
+                                    return ItemCard(
+                                      categoryId: widget.category.id,
+                                      item: item,
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-
-              // عرض العناصر في GridView ضمن SingleChildScrollView
-              _filteredItems.isEmpty
-                  ? const Center(child: Text("لا توجد نتائج مطابقة."))
-                  : LayoutBuilder(
-                      builder: (context, constraints) {
-                        int crossAxisCount =
-                            Utils.calculateCrossAxisCount(constraints.maxWidth);
-                        return GridView.builder(
-                          padding: const EdgeInsets.all(6.0),
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: crossAxisCount,
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 10,
-                            childAspectRatio: 0.85,
-                          ),
-                          itemCount: _filteredItems.length,
-                          shrinkWrap: true,
-                          // تأكيد على أن GridView يتناسب مع حجم المحتوى
-                          physics: NeverScrollableScrollPhysics(),
-                          // تعطيل التمرير في GridView
-                          itemBuilder: (context, index) {
-                            final item = _filteredItems[index];
-                            return ItemCard(
-                              categoryId: widget.category.id,
-                              item: item,
-                            );
-                          },
-                        );
-                      },
-                    ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 

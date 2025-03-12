@@ -9,7 +9,7 @@ class EditRestaurantScreen extends StatefulWidget {
   const EditRestaurantScreen({super.key, this.restaurant});
 
   @override
-  _EditRestaurantScreenState createState() => _EditRestaurantScreenState();
+  State<EditRestaurantScreen> createState() => _EditRestaurantScreenState();
 }
 
 class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
@@ -22,9 +22,12 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.restaurant?.name ?? '');
-    _addressController = TextEditingController(text: widget.restaurant?.address ?? '');
-    _imageController = TextEditingController(text: widget.restaurant?.image ?? '');
+    _nameController =
+        TextEditingController(text: widget.restaurant?.name ?? '');
+    _addressController =
+        TextEditingController(text: widget.restaurant?.address ?? '');
+    _imageController =
+        TextEditingController(text: widget.restaurant?.image ?? '');
   }
 
   @override
@@ -41,7 +44,8 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
     setState(() => _isLoading = true);
 
     final newRestaurant = Restaurant(
-      id: widget.restaurant?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      id: widget.restaurant?.id ??
+          DateTime.now().millisecondsSinceEpoch.toString(),
       name: _nameController.text.trim(),
       address: _addressController.text.trim(),
       image: _imageController.text.trim(),
@@ -50,7 +54,9 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
     try {
       await FirestoreService().saveRestaurant(newRestaurant);
       setState(() => _isLoading = false);
-      Navigator.pop(context);
+      if (mounted) {
+        Navigator.pop(context);
+      }
     } catch (e) {
       setState(() => _isLoading = false);
       _showErrorMessage("فشل في حفظ المطعم. حاول مرة أخرى.");
@@ -67,7 +73,9 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.restaurant == null ? 'إضافة مطعم' : 'تعديل بيانات ${_nameController.text}'),
+        title: Text(widget.restaurant == null
+            ? 'إضافة مطعم'
+            : 'تعديل بيانات ${_nameController.text}'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -85,7 +93,8 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
                         labelText: 'اسم المطعم',
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) => value!.isEmpty ? 'يرجى إدخال اسم المطعم' : null,
+                      validator: (value) =>
+                          value!.isEmpty ? 'يرجى إدخال اسم المطعم' : null,
                     ),
                     const SizedBox(height: 12),
 
@@ -96,7 +105,8 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
                         labelText: 'العنوان',
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) => value!.isEmpty ? 'يرجى إدخال العنوان' : null,
+                      validator: (value) =>
+                          value!.isEmpty ? 'يرجى إدخال العنوان' : null,
                     ),
                     const SizedBox(height: 12),
 
@@ -107,7 +117,8 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
                         labelText: 'رابط الصورة',
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) => value!.isEmpty ? 'يرجى إدخال رباط الصورة' : null,
+                      validator: (value) =>
+                          value!.isEmpty ? 'يرجى إدخال رباط الصورة' : null,
                       onChanged: (value) => setState(() {}),
                     ),
                     const SizedBox(height: 12),
@@ -123,7 +134,9 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
                             child: Image.network(
                               _imageController.text,
                               fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, size: 100, color: Colors.grey),
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.broken_image,
+                                      size: 100, color: Colors.grey),
                             ),
                           ),
                         );
@@ -142,11 +155,16 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green.shade700,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
                       ),
                       child: _isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text('حفظ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                          : const Text('حفظ',
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white)),
                     ),
                   ),
                 ],

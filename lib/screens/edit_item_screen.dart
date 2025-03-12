@@ -11,7 +11,7 @@ class EditItemScreen extends StatefulWidget {
   const EditItemScreen({super.key, required this.categoryId, this.item});
 
   @override
-  _EditItemScreenState createState() => _EditItemScreenState();
+  State<EditItemScreen> createState() => _EditItemScreenState();
 }
 
 class _EditItemScreenState extends State<EditItemScreen> {

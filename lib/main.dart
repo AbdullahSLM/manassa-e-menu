@@ -11,7 +11,6 @@ import 'package:manassa_e_menu/screens/menus_screen.dart';
 import 'package:manassa_e_menu/screens/restaurants_screen.dart';
 import 'package:manassa_e_menu/services/firestore_service.dart';
 import 'firebase_options.dart';
-import 'models/item_model.dart';
 import 'models/menu_category_model.dart';
 
 void main() async {

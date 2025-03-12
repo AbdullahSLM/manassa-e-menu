@@ -30,7 +30,9 @@ class FirestoreService {
         return Restaurant.fromFirestore(doc.data()!, doc.id);
       }
     } catch (e) {
-      print('Error getting restaurant: $e');
+      if (kDebugMode) {
+        print('Error getting restaurant: $e');
+      }
     }
     return null;
   }
@@ -47,7 +49,9 @@ class FirestoreService {
             .set(restaurant.toFirestore());
       }
     } catch (e) {
-      print('Error saving restaurant: $e');
+      if (kDebugMode) {
+        print('Error saving restaurant: $e');
+      }
     }
   }
 
@@ -68,7 +72,9 @@ class FirestoreService {
       batch.delete(_db.collection('restaurants').doc(restaurantId));
       await batch.commit();
     } catch (e) {
-      print('Error deleting restaurant: $e');
+      if (kDebugMode) {
+        print('Error deleting restaurant: $e');
+      }
     }
   }
 
@@ -107,7 +113,9 @@ class FirestoreService {
         }
       }
     } catch (e) {
-      print('Error getting menu images: $e');
+      if (kDebugMode) {
+        print('Error getting menu images: $e');
+      }
     }
     return menuImages;
   }
@@ -126,7 +134,9 @@ class FirestoreService {
         allMenuImages.addAll(menuImages);
       }
     } catch (e) {
-      print('Error getting all menu images: $e');
+      if (kDebugMode) {
+        print('Error getting all menu images: $e');
+      }
     }
     return allMenuImages;
   }
@@ -198,7 +208,9 @@ class FirestoreService {
         return MenuCategory.fromFirestore(doc.data()!, doc.id);
       }
     } catch (e) {
-      print('Error getting menu category: $e');
+      if (kDebugMode) {
+        print('Error getting menu category: $e');
+      }
     }
     return null;
   }

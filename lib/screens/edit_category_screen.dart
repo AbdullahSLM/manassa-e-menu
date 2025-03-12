@@ -11,7 +11,7 @@ class EditCategoryScreen extends StatefulWidget {
   const EditCategoryScreen({super.key, required this.restaurantId, this.category});
 
   @override
-  _EditCategoryScreenState createState() => _EditCategoryScreenState();
+  State<EditCategoryScreen> createState() => _EditCategoryScreenState();
 }
 
 class _EditCategoryScreenState extends State<EditCategoryScreen> {
@@ -49,7 +49,9 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
     try {
       await FirestoreService().saveMenuCategory(newCategory);
       setState(() => _isLoading = false);
-      Navigator.pop(context);
+      if(mounted) {
+        Navigator.pop(context);
+      }
     } catch (e) {
       setState(() => _isLoading = false);
       _showErrorMessage("حدث خطأ أثناء الحفظ. حاول مرة أخرى.");
