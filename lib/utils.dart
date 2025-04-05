@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 
 @immutable
@@ -26,7 +26,7 @@ class Utils {
   }
 
   /// الحصول على اسم التطبيق كـ Text
-  static Text get appName {
+  static Widget get appName {
     return const Text.rich(
       TextSpan(
         style: TextStyle(
@@ -42,4 +42,12 @@ class Utils {
       ),
     );
   }
+
+  static  final RegExp emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+
+  // Allows +, digits, spaces, hyphens, parentheses. Minimum 7 chars total.
+  static final RegExp phoneRegex = RegExp(r'^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s./0-9]*$');
+
+  // A slightly simpler version, just checking allowed characters and minimum length ~7
+  static  final RegExp simplePhoneRegex = RegExp(r'^\+?[\d\s\-().]{7,}$');
 }

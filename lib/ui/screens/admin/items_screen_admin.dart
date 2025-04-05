@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:manassa_e_menu/screens/edit_item_screen.dart';
-import 'package:manassa_e_menu/screens/admin/restaurants_screen_admin.dart';
+import 'package:manassa_e_menu/ui/screens/edit_item_screen.dart';
+import 'package:manassa_e_menu/ui/screens/admin/restaurants_screen_admin.dart';
 
-import '../../models/item_model.dart';
-import '../../models/menu_category_model.dart';
-import '../../services/firestore_service.dart';
-import '../../widgets/admin/item_card_admin.dart';
+import 'package:manassa_e_menu/models/item.dart';
+import 'package:manassa_e_menu/models/category.dart';
+import 'package:manassa_e_menu/services/firestore_service.dart';
+import 'package:manassa_e_menu/ui/widgets/admin/item_card_admin.dart';
 
 class ItemsScreenAdmin extends StatelessWidget {
-  final MenuCategory category;
+  final Category category;
 
   const ItemsScreenAdmin({super.key, required this.category});
 

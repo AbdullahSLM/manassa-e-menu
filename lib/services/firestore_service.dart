@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 
-import '../models/item_model.dart';
-import '../models/menu_category_model.dart';
-import '../models/restaurant_model.dart';
+import 'package:manassa_e_menu/models/item.dart';
+import 'package:manassa_e_menu/models/category.dart';
+import 'package:manassa_e_menu/models/restaurant.dart';
 
 @immutable
 class FirestoreService {
@@ -66,7 +66,7 @@ class FirestoreService {
       WriteBatch batch = _db.batch();
 
       for (var category in categoriesSnapshot.docs) {
-        await deleteMenuCategory(category.id, batch);
+        await deleteCategory(category.id, batch);
       }
 
       batch.delete(_db.collection('restaurants').doc(restaurantId));
@@ -83,7 +83,7 @@ class FirestoreService {
   // ==========================
 
   /// جلب القوائم لمطعم معين
-  Stream<List<MenuCategory>> getMenuCategories(String restaurantId) {
+  Stream<List<Category>> getMenuCategories(String restaurantId) {
     return _db
         .collection('restaurants')
         .doc(restaurantId)
@@ -91,7 +91,7 @@ class FirestoreService {
         .snapshots()
         .map((snapshot) {
       return snapshot.docs
-          .map((doc) => MenuCategory.fromFirestore(doc.data(), doc.id))
+          .map((doc) => Category.fromFirestore(doc.data(), doc.id))
           .toList();
     });
   }
@@ -142,7 +142,7 @@ class FirestoreService {
   }
 
   /// إضافة أو تعديل قائمة طعام
-  Future<void> saveMenuCategory(MenuCategory category) async {
+  Future<void> saveCategory(Category category) async {
     try {
       await _db
           .collection('restaurants')
@@ -158,7 +158,7 @@ class FirestoreService {
   }
 
   /// حذف قائمة طعام معينة
-  Future<void> deleteMenuCategory(String categoryId,
+  Future<void> deleteCategory(String categoryId,
       [WriteBatch? batch]) async {
     try {
       var itemsSnapshot = await _db
@@ -200,12 +200,12 @@ class FirestoreService {
     });
   }
 
-  // جلب MenuCategory بناءً على menuId
-  Future<MenuCategory?> getMenuCategory(String menuId) async {
+  // جلب Category بناءً على menuId
+  Future<Category?> getCategory(String menuId) async {
     try {
       var doc = await _db.collection('menu_categories').doc(menuId).get();
       if (doc.exists) {
-        return MenuCategory.fromFirestore(doc.data()!, doc.id);
+        return Category.fromFirestore(doc.data()!, doc.id);
       }
     } catch (e) {
       if (kDebugMode) {

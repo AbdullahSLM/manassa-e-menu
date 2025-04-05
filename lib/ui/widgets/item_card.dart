@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:manassa_e_menu/models/item_model.dart';
+import 'package:manassa_e_menu/models/item.dart';
 
 class ItemCard extends StatelessWidget {
   final Item item;

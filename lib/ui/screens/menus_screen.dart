@@ -1,10 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:manassa_e_menu/models/menu_category_model.dart';
-import 'package:manassa_e_menu/models/restaurant_model.dart';
+import 'package:manassa_e_menu/models/category.dart';
+import 'package:manassa_e_menu/models/restaurant.dart';
 import 'package:manassa_e_menu/services/firestore_service.dart';
 import 'package:manassa_e_menu/utils.dart';
-import 'package:manassa_e_menu/widgets/menu_card.dart';
+import 'package:manassa_e_menu/ui/widgets/menu_card.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_shimmer/flutter_shimmer.dart'; // لإضافة ShimmerEffect
@@ -20,8 +20,8 @@ class MenusScreen extends StatefulWidget {
 
 class _MenusScreenState extends State<MenusScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<MenuCategory> _allCategories = [];
-  List<MenuCategory> _filteredCategories = [];
+  List<Category> _allCategories = [];
+  List<Category> _filteredCategories = [];
   bool _isLoading = true;
 
   @override

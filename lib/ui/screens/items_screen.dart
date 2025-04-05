@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:manassa_e_menu/models/item_model.dart';
-import 'package:manassa_e_menu/models/menu_category_model.dart';
+import 'package:manassa_e_menu/models/item.dart';
+import 'package:manassa_e_menu/models/category.dart';
 import 'package:manassa_e_menu/services/firestore_service.dart';
 import 'package:manassa_e_menu/utils.dart';
-import 'package:manassa_e_menu/widgets/item_card.dart';
+import 'package:manassa_e_menu/ui/widgets/item_card.dart';
 import 'package:flutter_shimmer/flutter_shimmer.dart'; // لإضافة ShimmerEffect
 
 class ItemsScreen extends StatefulWidget {
-  final MenuCategory category;
+  final Category category;
 
   const ItemsScreen({super.key, required this.category});
 

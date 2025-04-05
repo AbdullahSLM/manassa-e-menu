@@ -1,60 +1,65 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:manassa_e_menu/models/menu_category_model.dart';
+import 'package:manassa_e_menu/services/firestore_service.dart';
 
-import '../services/firestore_service.dart';
+import 'package:manassa_e_menu/models/restaurant.dart';
 
-class EditCategoryScreen extends StatefulWidget {
-  final String restaurantId;
-  final MenuCategory? category;
+class EditRestaurantScreen extends StatefulWidget {
+  final Restaurant? restaurant;
 
-  const EditCategoryScreen({super.key, required this.restaurantId, this.category});
+  const EditRestaurantScreen({super.key, this.restaurant});
 
   @override
-  State<EditCategoryScreen> createState() => _EditCategoryScreenState();
+  State<EditRestaurantScreen> createState() => _EditRestaurantScreenState();
 }
 
-class _EditCategoryScreenState extends State<EditCategoryScreen> {
+class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
+  late TextEditingController _addressController;
   late TextEditingController _imageController;
+  late TextEditingController _phoneNumberController;
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.category?.name ?? '');
-    _imageController = TextEditingController(text: widget.category?.image ?? '');
+    _nameController = TextEditingController(text: widget.restaurant?.name ?? '');
+    _addressController = TextEditingController(text: widget.restaurant?.address ?? '');
+    _imageController = TextEditingController(text: widget.restaurant?.image ?? '');
   }
 
   @override
   void dispose() {
     _nameController.dispose();
+    _addressController.dispose();
     _imageController.dispose();
     super.dispose();
   }
 
-  Future<void> _saveCategory() async {
+  Future<void> _saveRestaurant() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
-    final newCategory = MenuCategory(
-      id: widget.category?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      restaurantId: widget.restaurantId,
+    final newRestaurant = Restaurant(
+      id: widget.restaurant?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
       name: _nameController.text.trim(),
+      address: _addressController.text.trim(),
       image: _imageController.text.trim(),
+      phoneNumber: _phoneNumberController.text.trim(),
+
+
     );
 
     try {
-      await FirestoreService().saveMenuCategory(newCategory);
+      await FirestoreService().saveRestaurant(newRestaurant);
       setState(() => _isLoading = false);
-      if(mounted) {
+      if (mounted) {
         Navigator.pop(context);
       }
     } catch (e) {
       setState(() => _isLoading = false);
-      _showErrorMessage("حدث خطأ أثناء الحفظ. حاول مرة أخرى.");
+      _showErrorMessage("فشل في حفظ المطعم. حاول مرة أخرى.");
     }
   }
 
@@ -68,7 +73,7 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.category == null ? 'إضافة قائمة' : 'تعديل ${_nameController.text}'),
+        title: Text(widget.restaurant == null ? 'إضافة مطعم' : 'تعديل بيانات ${_nameController.text}'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -79,30 +84,41 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
               Expanded(
                 child: ListView(
                   children: [
-                    // حقل اسم القائمة
+                    // اسم المطعم
                     TextFormField(
                       controller: _nameController,
                       decoration: const InputDecoration(
-                        labelText: 'اسم القائمة',
+                        labelText: 'اسم المطعم',
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) => value!.isEmpty ? 'يرجى إدخال اسم القائمة' : null,
+                      validator: (value) => value!.isEmpty ? 'يرجى إدخال اسم المطعم' : null,
                     ),
                     const SizedBox(height: 12),
 
-                    // حقل رابط الصورة
+                    // العنوان
+                    TextFormField(
+                      controller: _addressController,
+                      decoration: const InputDecoration(
+                        labelText: 'العنوان',
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) => value!.isEmpty ? 'يرجى إدخال العنوان' : null,
+                    ),
+                    const SizedBox(height: 12),
+
+                    // رابط الصورة
                     TextFormField(
                       controller: _imageController,
                       decoration: const InputDecoration(
                         labelText: 'رابط الصورة',
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) => value!.isEmpty ? 'يرجى إدخال رابط الصورة' : null,
+                      validator: (value) => value!.isEmpty ? 'يرجى إدخال رباط الصورة' : null,
                       onChanged: (value) => setState(() {}),
                     ),
                     const SizedBox(height: 12),
 
-                    // عرض صورة المعاينة
+                    // عرض الصورة المعاينة
                     if (_imageController.text.isNotEmpty)
                       Builder(builder: (context) {
                         double widthOfScreen = MediaQuery.sizeOf(context).width;
@@ -110,11 +126,10 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
                           height: widthOfScreen * 0.8,
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8.0),
-                            child: CachedNetworkImage(
-                              imageUrl: _imageController.text,
+                            child: Image.network(
+                              _imageController.text,
                               fit: BoxFit.contain,
-                              placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                              errorWidget: (context, url, error) => const Icon(Icons.broken_image, size: 100, color: Colors.grey),
+                              errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, size: 100, color: Colors.grey),
                             ),
                           ),
                         );
@@ -123,12 +138,13 @@ class _EditCategoryScreenState extends State<EditCategoryScreen> {
                   ],
                 ),
               ),
+
               // زر الحفظ
               Row(
                 children: [
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: _isLoading ? null : _saveCategory,
+                      onPressed: _isLoading ? null : _saveRestaurant,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green.shade700,
                         padding: const EdgeInsets.symmetric(vertical: 14),

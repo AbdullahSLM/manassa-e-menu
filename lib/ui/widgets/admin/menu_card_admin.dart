@@ -1,13 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:manassa_e_menu/models/category.dart';
+import 'package:manassa_e_menu/services/firestore_service.dart';
+import 'package:manassa_e_menu/ui/screens/admin/items_screen_admin.dart';
+import 'package:manassa_e_menu/ui/screens/edit_category_screen.dart';
 
-import '../../models/menu_category_model.dart';
-import '../../screens/admin/items_screen_admin.dart';
-import '../../screens/edit_category_screen.dart';
-import '../../services/firestore_service.dart';
+
 
 class MenuCardAdmin extends StatelessWidget {
-  final MenuCategory category;
+  final Category category;
   final String restaurantId;
 
   const MenuCardAdmin({super.key, required this.category, required this.restaurantId});
@@ -32,7 +33,7 @@ class MenuCardAdmin extends StatelessWidget {
     );
 
     if (result == true) {
-      await FirestoreService().deleteMenuCategory(categoryId);
+      await FirestoreService().deleteCategory(categoryId);
     }
   }
 

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:manassa_e_menu/models/restaurant_model.dart';
-import 'package:manassa_e_menu/screens/edit_restaurant_screen.dart';
-import 'package:manassa_e_menu/screens/admin/menus_screen_admin.dart';
+import 'package:manassa_e_menu/models/restaurant.dart';
+import 'package:manassa_e_menu/ui/screens/edit_restaurant_screen.dart';
+import 'package:manassa_e_menu/ui/screens/admin/menus_screen_admin.dart';
 import 'package:manassa_e_menu/services/firestore_service.dart';
-import 'package:manassa_e_menu/widgets/admin/restaurant_card_admin.dart';
+import 'package:manassa_e_menu/ui/widgets/admin/restaurant_card_admin.dart';
 
 class RestaurantsScreenAdmin extends StatelessWidget {
   const RestaurantsScreenAdmin({super.key});

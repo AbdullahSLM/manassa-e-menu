@@ -1,67 +1,67 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 
 @immutable
-class Restaurant {
+class Category {
   final String id;
   final String name;
   final String image;
-  final String address;
+  final String restaurantId;
 
-  const Restaurant({
+  const Category({
     required this.id,
     required this.name,
+    required this.restaurantId,
     required this.image,
-    required this.address,
   });
 
-  factory Restaurant.fromFirestore(Map<String, dynamic> data, String id) {
-    return Restaurant(
+  factory Category.fromFirestore(Map<String, dynamic> data, String id) {
+    return Category(
       id: id,
       name: data['name'] as String? ?? '',
+      restaurantId: data['restaurantId'] as String? ?? '',
       image: data['image'] as String? ?? '',
-      address: data['address'] as String? ?? '',
     );
   }
 
   Map<String, dynamic> toFirestore() {
     return {
       'name': name,
+      'restaurantId': restaurantId,
       'image': image,
-      'address': address,
     };
   }
 
-  Restaurant copyWith({
+  Category copyWith({
     String? id,
     String? name,
     String? image,
-    String? address,
+    String? restaurantId,
   }) {
-    return Restaurant(
+    return Category(
       id: id ?? this.id,
       name: name ?? this.name,
       image: image ?? this.image,
-      address: address ?? this.address,
+      restaurantId: restaurantId ?? this.restaurantId,
     );
   }
 
   @override
   String toString() {
-    return 'Restaurant(id: $id, name: $name, image: $image, address: $address)';
+    return 'Category(id: $id, name: $name, image: $image, restaurantId: $restaurantId)';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is Restaurant &&
+    return other is Category &&
         other.id == id &&
         other.name == name &&
         other.image == image &&
-        other.address == address;
+        other.restaurantId == restaurantId;
   }
 
   @override
   int get hashCode {
-    return id.hashCode ^ name.hashCode ^ image.hashCode ^ address.hashCode;
+    return id.hashCode ^ name.hashCode ^ image.hashCode ^ restaurantId.hashCode;
   }
 }

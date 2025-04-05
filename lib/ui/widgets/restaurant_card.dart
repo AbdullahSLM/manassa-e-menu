@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:manassa_e_menu/models/restaurant_model.dart';
-import 'package:manassa_e_menu/screens/menus_screen.dart';
+import 'package:manassa_e_menu/models/restaurant.dart';
+import 'package:manassa_e_menu/ui/screens/menus_screen.dart';
 
 class RestaurantCard extends StatelessWidget {
   final Restaurant restaurant;

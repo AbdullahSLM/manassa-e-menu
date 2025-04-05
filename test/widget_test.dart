@@ -7,7 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:manassa_e_menu/screens/admin/restaurants_screen_admin.dart';
+import 'package:manassa_e_menu/ui/screens/admin/restaurants_screen_admin.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {

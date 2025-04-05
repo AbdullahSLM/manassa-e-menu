@@ -1,19 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:manassa_e_menu/models/restaurant_model.dart';
-import 'package:manassa_e_menu/screens/menus_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:manassa_e_menu/models/restaurant.dart';
+import 'package:manassa_e_menu/services/auth_service.dart';
+import 'package:manassa_e_menu/ui/screens/user_required.dart';
+import 'package:manassa_e_menu/ui/screens/menus_screen.dart';
 import 'package:manassa_e_menu/services/firestore_service.dart';
+import 'package:manassa_e_menu/ui/widgets/app_drawer.dart';
+import 'package:manassa_e_menu/ui/widgets/restaurant_card.dart';
 import 'package:manassa_e_menu/utils.dart';
-import 'package:manassa_e_menu/widgets/restaurant_card.dart';
 import 'package:flutter_shimmer/flutter_shimmer.dart'; // لإضافة ShimmerEffect
 
-class RestaurantsScreen extends StatefulWidget {
+class RestaurantsScreen extends ConsumerStatefulWidget {
   const RestaurantsScreen({super.key});
 
   @override
-  State<RestaurantsScreen> createState() => _RestaurantsScreenState();
+  ConsumerState<RestaurantsScreen> createState() => _RestaurantsScreenState();
 }
 
-class _RestaurantsScreenState extends State<RestaurantsScreen> {
+class _RestaurantsScreenState extends ConsumerState<RestaurantsScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<Restaurant> _allRestaurants = [];
   List<Restaurant> _filteredRestaurants = [];
@@ -49,16 +54,15 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
 
   void _filterRestaurants(String query) {
     setState(() {
-      _filteredRestaurants = _allRestaurants
-          .where((restaurant) =>
-              restaurant.name.toLowerCase().contains(query.toLowerCase()))
-          .toList();
+      _filteredRestaurants = _allRestaurants.where((restaurant) => restaurant.name.toLowerCase().contains(query.toLowerCase())).toList();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(),
+      drawer: const AppDrawer(),
       body: _isLoading
           ? ListView.builder(
               itemCount: 5,
@@ -107,13 +111,10 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
                           ? const Center(child: Text("لا توجد نتائج مطابقة."))
                           : LayoutBuilder(
                               builder: (context, constraints) {
-                                int crossAxisCount =
-                                    Utils.calculateCrossAxisCount(
-                                        constraints.maxWidth);
+                                int crossAxisCount = Utils.calculateCrossAxisCount(constraints.maxWidth);
                                 return GridView.builder(
                                   padding: const EdgeInsets.all(6.0),
-                                  gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                     crossAxisCount: crossAxisCount,
                                     crossAxisSpacing: 15,
                                     mainAxisSpacing: 15,
@@ -123,21 +124,16 @@ class _RestaurantsScreenState extends State<RestaurantsScreen> {
                                   shrinkWrap: true,
                                   physics: const NeverScrollableScrollPhysics(),
                                   itemBuilder: (context, index) {
-                                    final restaurant =
-                                        _filteredRestaurants[index];
+                                    final restaurant = _filteredRestaurants[index];
                                     return GestureDetector(
                                       onTap: () {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                              settings:
-                                                  const RouteSettings(name: ''),
-                                              builder: (_) => MenusScreen(
-                                                  restaurant: restaurant)),
+                                              settings: const RouteSettings(name: ''), builder: (_) => MenusScreen(restaurant: restaurant)),
                                         );
                                       },
-                                      child: RestaurantCard(
-                                          restaurant: restaurant),
+                                      child: RestaurantCard(restaurant: restaurant),
                                     );
                                   },
                                 );

@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:manassa_e_menu/models/restaurant_model.dart';
-import 'package:manassa_e_menu/screens/edit_restaurant_screen.dart';
+import 'package:manassa_e_menu/models/restaurant.dart';
+import 'package:manassa_e_menu/ui/screens/edit_restaurant_screen.dart';
 import 'package:manassa_e_menu/services/firestore_service.dart';
 
 class RestaurantCardAdmin extends StatelessWidget {

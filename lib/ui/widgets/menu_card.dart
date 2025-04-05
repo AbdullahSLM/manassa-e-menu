@@ -1,10 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:manassa_e_menu/screens/items_screen.dart';
-import '../../models/menu_category_model.dart';
+import 'package:manassa_e_menu/ui/screens/items_screen.dart';
+import 'package:manassa_e_menu/models/category.dart';
 
 class MenuCard extends StatelessWidget {
-  final MenuCategory category;
+  final Category category;
   final String restaurantId;
 
   const MenuCard(

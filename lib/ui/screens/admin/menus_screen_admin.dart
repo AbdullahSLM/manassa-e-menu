@@ -1,12 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:manassa_e_menu/models/menu_category_model.dart';
-import 'package:manassa_e_menu/models/restaurant_model.dart';
-import 'package:manassa_e_menu/screens/admin/restaurants_screen_admin.dart';
-import 'package:manassa_e_menu/screens/edit_category_screen.dart';
+import 'package:manassa_e_menu/models/category.dart';
+import 'package:manassa_e_menu/models/restaurant.dart';
+import 'package:manassa_e_menu/ui/screens/admin/restaurants_screen_admin.dart';
+import 'package:manassa_e_menu/ui/screens/edit_category_screen.dart';
 import 'package:manassa_e_menu/services/firestore_service.dart';
 import 'package:manassa_e_menu/utils.dart';
-import 'package:manassa_e_menu/widgets/admin/menu_card_admin.dart';
+import 'package:manassa_e_menu/ui/widgets/admin/menu_card_admin.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class MenusScreenAdmin extends StatelessWidget {
@@ -24,7 +24,7 @@ class MenusScreenAdmin extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: StreamBuilder<List<MenuCategory>>(
+        child: StreamBuilder<List<Category>>(
           stream: FirestoreService().getMenuCategories(restaurant.id),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
@@ -100,7 +100,7 @@ class MenusScreenAdmin extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryGrid(List<MenuCategory> categories, int crossAxisCount) {
+  Widget _buildCategoryGrid(List<Category> categories, int crossAxisCount) {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
