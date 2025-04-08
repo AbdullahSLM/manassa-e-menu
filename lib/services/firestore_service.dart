@@ -16,9 +16,7 @@ class FirestoreService {
   /// جلب قائمة المطاعم
   Stream<List<Restaurant>> getRestaurants() {
     return _db.collection('restaurants').snapshots().map((snapshot) {
-      return snapshot.docs
-          .map((doc) => Restaurant.fromFirestore(doc.data(), doc.id))
-          .toList();
+      return snapshot.docs.map((doc) => Restaurant.fromFirestore(doc.data(), doc.id)).toList();
     });
   }
 
@@ -43,10 +41,7 @@ class FirestoreService {
       if (restaurant.id.isEmpty) {
         await _db.collection('restaurants').add(restaurant.toFirestore());
       } else {
-        await _db
-            .collection('restaurants')
-            .doc(restaurant.id)
-            .set(restaurant.toFirestore());
+        await _db.collection('restaurants').doc(restaurant.id).set(restaurant.toFirestore());
       }
     } catch (e) {
       if (kDebugMode) {
@@ -58,18 +53,20 @@ class FirestoreService {
   /// حذف مطعم معين
   Future<void> deleteRestaurant(String restaurantId) async {
     try {
-      var categoriesSnapshot = await _db
+      final categoriesSnapshot = await _db
           .collection('restaurants')
           .doc(restaurantId)
           .collection('menu_categories')
           .get();
-      WriteBatch batch = _db.batch();
+
+      final batch = _db.batch();
 
       for (var category in categoriesSnapshot.docs) {
-        await deleteCategory(category.id, batch);
+        await deleteCategory(restaurantId, category.id, batch);
       }
 
       batch.delete(_db.collection('restaurants').doc(restaurantId));
+
       await batch.commit();
     } catch (e) {
       if (kDebugMode) {
@@ -84,15 +81,8 @@ class FirestoreService {
 
   /// جلب القوائم لمطعم معين
   Stream<List<Category>> getMenuCategories(String restaurantId) {
-    return _db
-        .collection('restaurants')
-        .doc(restaurantId)
-        .collection('menu_categories')
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => Category.fromFirestore(doc.data(), doc.id))
-          .toList();
+    return _db.collection('restaurants').doc(restaurantId).collection('menu_categories').snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) => Category.fromFirestore(doc.data(), doc.id)).toList();
     });
   }
 
@@ -100,11 +90,7 @@ class FirestoreService {
   Future<List<String>> getMenuImagesForRestaurant(String restaurantId) async {
     List<String> menuImages = [];
     try {
-      QuerySnapshot menuSnapshot = await _db
-          .collection('restaurants')
-          .doc(restaurantId)
-          .collection('menu_categories')
-          .get();
+      QuerySnapshot menuSnapshot = await _db.collection('restaurants').doc(restaurantId).collection('menu_categories').get();
 
       for (var doc in menuSnapshot.docs) {
         var data = doc.data() as Map<String, dynamic>;
@@ -124,13 +110,11 @@ class FirestoreService {
   Future<List<String>> getAllMenuImages() async {
     List<String> allMenuImages = [];
     try {
-      QuerySnapshot restaurantsSnapshot =
-          await _db.collection('restaurants').get();
+      QuerySnapshot restaurantsSnapshot = await _db.collection('restaurants').get();
 
       for (var doc in restaurantsSnapshot.docs) {
         String restaurantId = doc.id;
-        List<String> menuImages =
-            await getMenuImagesForRestaurant(restaurantId);
+        List<String> menuImages = await getMenuImagesForRestaurant(restaurantId);
         allMenuImages.addAll(menuImages);
       }
     } catch (e) {
@@ -144,12 +128,7 @@ class FirestoreService {
   /// إضافة أو تعديل قائمة طعام
   Future<void> saveCategory(Category category) async {
     try {
-      await _db
-          .collection('restaurants')
-          .doc(category.restaurantId)
-          .collection('menu_categories')
-          .doc(category.id)
-          .set(category.toFirestore());
+      await _db.collection('restaurants').doc(category.restaurantId).collection('menu_categories').doc(category.id).set(category.toFirestore());
     } catch (e) {
       if (kDebugMode) {
         print('Error saving menu category: $e');
@@ -158,23 +137,35 @@ class FirestoreService {
   }
 
   /// حذف قائمة طعام معينة
-  Future<void> deleteCategory(String categoryId,
-      [WriteBatch? batch]) async {
+  Future<void> deleteCategory(String restaurantId, String categoryId, [WriteBatch? externalBatch]) async {
     try {
-      var itemsSnapshot = await _db
+      final shouldCommit = externalBatch == null;
+      final batch = externalBatch ?? _db.batch();
+
+      final itemsSnapshot = await _db
+          .collection('restaurants')
+          .doc(restaurantId)
           .collection('menu_categories')
           .doc(categoryId)
           .collection('menu_items')
           .get();
 
-      batch ??= _db.batch();
-
-      for (var item in itemsSnapshot.docs) {
+      for (final item in itemsSnapshot.docs) {
         batch.delete(item.reference);
       }
 
-      batch.delete(_db.collection('menu_categories').doc(categoryId));
-      await batch.commit();
+      batch.delete(
+        _db.collection('restaurants')
+            .doc(restaurantId)
+            .collection('menu_categories')
+            .doc(categoryId),
+      );
+
+      if (shouldCommit) {
+        await batch.commit();
+      }
+
+      print('✅ Deleted category $categoryId in restaurant $restaurantId with ${itemsSnapshot.size} items');
     } catch (e) {
       if (kDebugMode) {
         print('Error deleting menu category: $e');
@@ -188,15 +179,8 @@ class FirestoreService {
 
   /// جلب الأصناف لقائمة طعام معينة
   Stream<List<Item>> getMenuItems(String menuId) {
-    return _db
-        .collection('menu_categories')
-        .doc(menuId)
-        .collection('menu_items')
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => Item.fromFirestore(doc.data(), doc.id))
-          .toList();
+    return _db.collection('menu_categories').doc(menuId).collection('menu_items').snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) => Item.fromFirestore(doc.data(), doc.id)).toList();
     });
   }
 
@@ -218,12 +202,7 @@ class FirestoreService {
   /// إضافة أو تعديل صنف طعام
   Future<void> saveMenuItem(Item item) async {
     try {
-      await _db
-          .collection('menu_categories')
-          .doc(item.categoryId)
-          .collection('menu_items')
-          .doc(item.id)
-          .set(item.toFirestore());
+      await _db.collection('menu_categories').doc(item.categoryId).collection('menu_items').doc(item.id).set(item.toFirestore());
     } catch (e) {
       if (kDebugMode) {
         print('Error saving menu item: $e');
@@ -234,12 +213,7 @@ class FirestoreService {
   /// حذف صنف معين
   Future<void> deleteMenuItem(String menuId, String itemId) async {
     try {
-      await _db
-          .collection('menu_categories')
-          .doc(menuId)
-          .collection('menu_items')
-          .doc(itemId)
-          .delete();
+      await _db.collection('menu_categories').doc(menuId).collection('menu_items').doc(itemId).delete();
     } catch (e) {
       if (kDebugMode) {
         print('Error deleting menu item: $e');

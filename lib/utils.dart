@@ -26,22 +26,31 @@ class Utils {
   }
 
   /// الحصول على اسم التطبيق كـ Text
-  static Widget get appName {
-    return const Text.rich(
+  static Widget appName(BuildContext context) {
+    return Text.rich(
       TextSpan(
-        style: TextStyle(
-            fontSize: 50, fontWeight: FontWeight.bold, color: Colors.red),
+        style: const TextStyle(
+          fontSize: 50,
+          fontWeight: FontWeight.bold,
+          color: Colors.red,
+        ),
         text: 'Hub',
         children: [
           TextSpan(
             style: TextStyle(
-                fontSize: 50, fontWeight: FontWeight.w300, color: Colors.black),
+              fontSize: 50,
+              fontWeight: FontWeight.w300,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.black,
+            ),
             text: 'فود',
           ),
         ],
       ),
     );
   }
+
 
   static  final RegExp emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
 

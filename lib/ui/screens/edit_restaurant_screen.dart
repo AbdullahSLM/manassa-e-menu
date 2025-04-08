@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:manassa_e_menu/services/firestore_service.dart';
-
 import 'package:manassa_e_menu/models/restaurant.dart';
 
 class EditRestaurantScreen extends StatefulWidget {
@@ -26,6 +25,7 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
     _nameController = TextEditingController(text: widget.restaurant?.name ?? '');
     _addressController = TextEditingController(text: widget.restaurant?.address ?? '');
     _imageController = TextEditingController(text: widget.restaurant?.image ?? '');
+    _phoneNumberController = TextEditingController(text: widget.restaurant?.phoneNumber ?? '');
   }
 
   @override
@@ -33,6 +33,7 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
     _nameController.dispose();
     _addressController.dispose();
     _imageController.dispose();
+    _phoneNumberController.dispose();
     super.dispose();
   }
 
@@ -47,19 +48,15 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
       address: _addressController.text.trim(),
       image: _imageController.text.trim(),
       phoneNumber: _phoneNumberController.text.trim(),
-
-
     );
 
     try {
       await FirestoreService().saveRestaurant(newRestaurant);
-      setState(() => _isLoading = false);
-      if (mounted) {
-        Navigator.pop(context);
-      }
+      if (mounted) Navigator.pop(context);
     } catch (e) {
-      setState(() => _isLoading = false);
       _showErrorMessage("فشل في حفظ المطعم. حاول مرة أخرى.");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -73,7 +70,7 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.restaurant == null ? 'إضافة مطعم' : 'تعديل بيانات ${_nameController.text}'),
+        title: Text(widget.restaurant == null ? 'إضافة مطعم' : 'تعديل ${_nameController.text}'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -81,85 +78,76 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
           key: _formKey,
           child: Column(
             children: [
+              if (_imageController.text.trim().isNotEmpty)
+                Center(
+                  child: Container(
+                    width: 300,
+                    height: 300,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.red, width: 4),
+                    ),
+                    child: CircleAvatar(
+                      radius: 100,
+                      backgroundImage: NetworkImage(_imageController.text.trim()),
+                      backgroundColor: Colors.grey[300],
+                      onBackgroundImageError: (_, __) => const Icon(Icons.broken_image, size: 60),
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 20),
               Expanded(
                 child: ListView(
                   children: [
-                    // اسم المطعم
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'اسم المطعم',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) => value!.isEmpty ? 'يرجى إدخال اسم المطعم' : null,
-                    ),
+                    _buildTextField(_nameController, 'اسم المطعم'),
+                    _buildTextField(_addressController, 'العنوان'),
+                    _buildTextField(_phoneNumberController, 'رقم الهاتف', keyboardType: TextInputType.phone),
+                    _buildTextField(_imageController, 'رابط الصورة', onChanged: (_) => setState(() {})),
                     const SizedBox(height: 12),
-
-                    // العنوان
-                    TextFormField(
-                      controller: _addressController,
-                      decoration: const InputDecoration(
-                        labelText: 'العنوان',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) => value!.isEmpty ? 'يرجى إدخال العنوان' : null,
-                    ),
-                    const SizedBox(height: 12),
-
-                    // رابط الصورة
-                    TextFormField(
-                      controller: _imageController,
-                      decoration: const InputDecoration(
-                        labelText: 'رابط الصورة',
-                        border: OutlineInputBorder(),
-                      ),
-                      validator: (value) => value!.isEmpty ? 'يرجى إدخال رباط الصورة' : null,
-                      onChanged: (value) => setState(() {}),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // عرض الصورة المعاينة
-                    if (_imageController.text.isNotEmpty)
-                      Builder(builder: (context) {
-                        double widthOfScreen = MediaQuery.sizeOf(context).width;
-                        return SizedBox(
-                          height: widthOfScreen * 0.8,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8.0),
-                            child: Image.network(
-                              _imageController.text,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) => const Icon(Icons.broken_image, size: 100, color: Colors.grey),
-                            ),
-                          ),
-                        );
-                      }),
-                    const SizedBox(height: 20),
                   ],
                 ),
               ),
-
-              // زر الحفظ
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _saveRestaurant,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green.shade700,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                      child: _isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text('حفظ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
-                    ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: _isLoading ? null : _saveRestaurant,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green.shade700,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                ],
-              ),
+                  icon: const Icon(Icons.save, color: Colors.white),
+                  label: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text('حفظ',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          )),
+                ),
+              )
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String labelText,
+      {TextInputType keyboardType = TextInputType.text, Function(String)? onChanged}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          labelText: labelText,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        validator: (value) => value == null || value.trim().isEmpty ? 'يرجى إدخال $labelText' : null,
+        onChanged: onChanged,
       ),
     );
   }

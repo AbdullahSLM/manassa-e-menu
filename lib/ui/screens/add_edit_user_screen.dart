@@ -213,7 +213,7 @@ class _AddEditUserScreenState extends ConsumerState<AddEditUserScreen> {
                       alignment: Alignment.center,
                       child: Padding(
                         padding: const EdgeInsets.only(bottom: 24.0),
-                        child: Utils.appName, // تأكد من أن هذا يعرض شيئًا مناسبًا
+                        child: Utils.appName(context), // تأكد من أن هذا يعرض شيئًا مناسبًا
                       ),
                     ),
 

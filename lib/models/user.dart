@@ -35,6 +35,11 @@ class UserModel {
     );
   }
 
+  // managedRestaurantIds getter method
+  get managedRestaurantIds {
+    return restaurants.map((r) => r.id).toList();
+  }
+
   // Method to convert UserModel instance to a Map for Firestore
   Map<String, dynamic> toJson() {
     return {

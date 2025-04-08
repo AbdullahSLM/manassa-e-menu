@@ -1,95 +1,92 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:manassa_e_menu/providers/users_providers.dart';
-import 'package:manassa_e_menu/ui/screens/add_edit_user_screen.dart'; // Adjust import path
+import 'package:manassa_e_menu/ui/screens/add_edit_user_screen.dart';
+import 'package:manassa_e_menu/ui/widgets/app_drawer.dart';
 
 class UsersPage extends ConsumerWidget {
   const UsersPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // --- IMPORTANT: Access Control ---
-    // This page should likely only be accessible by admin users.
-    // You should implement this check *before* navigating to this page,
-    // possibly in your GoRouter configuration or the widget triggering navigation.
-    // Example (conceptual check - implement in routing):
-    // final currentUser = ref.watch(currentUserModelProvider).value;
-    // if (currentUser == null || !currentUser.isAdmin) {
-    //   // Redirect or show an error/access denied message immediately
-    //   // return const Scaffold(body: Center(child: Text("Access Denied")));
-    // }
-
-    // Watch the stream provider that gives the list of all users
     final usersAsyncValue = ref.watch(allUsersStreamProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('إدارة المستخدمين'),
+        centerTitle: true,
       ),
+      drawer: const AppDrawer(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          showDialog(context: context, builder: (context) {
-            return const AddEditUserScreen();
-          });
+          showDialog(
+            context: context,
+            builder: (context) => const Dialog(
+              insetPadding: EdgeInsets.all(16),
+              child: AddEditUserScreen(),
+            ),
+          );
         },
-        child: const Icon(Icons.add),
+        backgroundColor: Colors.green,
+        child: const Icon(
+          Icons.person_add_alt_1,
+          color: Colors.white,
+        ),
       ),
       body: usersAsyncValue.when(
-        // Data is available
         data: (users) {
           if (users.isEmpty) {
             return const Center(
-              child: Text('No users found.'),
+              child: Text('لا يوجد مستخدمون حتى الآن'),
             );
           }
-          // Display the list of users
+
           return ListView.separated(
+            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
             itemCount: users.length,
+            separatorBuilder: (_, __) => const Divider(),
             itemBuilder: (context, index) {
               final user = users[index];
               return ListTile(
                 leading: CircleAvatar(
-                  // Simple avatar placeholder
-                  child: Text(user.name.isNotEmpty ? user.name[0].toUpperCase() : '?'),
+                  backgroundColor: Colors.blueGrey.shade200,
+                  child: Text(
+                    user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
-                title: Text(user.name),
-                subtitle: Text(user.username),
-                // Display email/phone
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
+                title: Text(user.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    IconButton(onPressed: () {
-                      showDialog(context: context, builder: (context) {
-                        return AddEditUserScreen(userModel: user);
-                      });
-                    }, icon: const Icon(Icons.edit)),
-                    if (user.isAdmin) const Icon(Icons.admin_panel_settings, color: Colors.blue),
+                    Text(user.username),
+                    if (user.isAdmin) const Text('مدير', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w500)),
                   ],
                 ),
-                // Indicate admin status
-                // Optional: Add onTap to navigate to a user detail/edit page
-                onTap: () {
-                  // TODO: Implement navigation to user detail page if needed
-                  print('Tapped on user: ${user.name} (UID: ${user.uid})');
-                  // Example: context.go('/users/${user.uid}');
-                },
+                trailing: IconButton(
+                  icon: const Icon(Icons.more_vert),
+                  tooltip: 'تعديل المستخدم',
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => Dialog(
+                        insetPadding: const EdgeInsets.all(16),
+                        child: AddEditUserScreen(userModel: user),
+                      ),
+                    );
+                  },
+                ),
               );
             },
-            separatorBuilder: (context, index) {
-              return const Divider(height: 0, thickness: 1);
-            },
           );
         },
-        // Data is loading
         loading: () => const Center(child: CircularProgressIndicator()),
-        // An error occurred
-        error: (error, stackTrace) {
-          print("Error loading users page: $error");
-          print(stackTrace);
-          return Center(
-            child: Text('Failed to load users: $error', style: const TextStyle(color: Colors.red)),
-          );
-        },
+        error: (error, _) => Center(
+          child: Text(
+            'فشل تحميل المستخدمين: $error',
+            style: const TextStyle(color: Colors.red),
+          ),
+        ),
       ),
     );
   }

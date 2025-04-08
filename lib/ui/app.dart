@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manassa_e_menu/models/category.dart';
 import 'package:manassa_e_menu/models/restaurant.dart';
+import 'package:manassa_e_menu/services/firestore_service.dart';
+import 'package:manassa_e_menu/ui/AppTheme.dart';
 import 'package:manassa_e_menu/ui/screens/admin_required.dart';
-import 'package:manassa_e_menu/ui/screens/user_required.dart';
 import 'package:manassa_e_menu/ui/screens/items_screen.dart';
 import 'package:manassa_e_menu/ui/screens/menus_screen.dart';
 import 'package:manassa_e_menu/ui/screens/profile_screen.dart';
 import 'package:manassa_e_menu/ui/screens/restaurants_screen.dart';
-import 'package:manassa_e_menu/services/firestore_service.dart';
+import 'package:manassa_e_menu/ui/screens/user_required.dart';
 import 'package:manassa_e_menu/ui/screens/users_page.dart';
+import 'package:manassa_e_menu/ui/widgets/app_drawer.dart';
 
 final GoRouter _router = GoRouter(
   routes: <RouteBase>[
@@ -84,7 +87,6 @@ final GoRouter _router = GoRouter(
         child: AdminRequired(builder: (context, profile) => const UsersPage()),
       ),
     ),
-    // صفحات الزبون
     GoRoute(
       path: '/',
       pageBuilder: (context, state) => MaterialPage(
@@ -92,7 +94,6 @@ final GoRouter _router = GoRouter(
         child: const RestaurantsScreen(),
       ),
     ),
-    // صفحة غير موجودة
     GoRoute(
       name: 'not_found',
       path: '*',
@@ -104,30 +105,17 @@ final GoRouter _router = GoRouter(
   ],
 );
 
-class App extends StatelessWidget {
+class App extends ConsumerWidget {
   const App({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'Hubفود',
-      theme: ThemeData(
-        scaffoldBackgroundColor: Colors.white,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.red,
-          foregroundColor: Colors.white,
-        ),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.red,
-          primary: Colors.red,
-        ),
-        useMaterial3: true,
-        fontFamily: 'DG Heaven',
-
-        // primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
+      themeMode: ref.watch(themeModeProvider),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
       locale: const Locale('ar', 'LY'),
       supportedLocales: const [
         Locale('ar', 'LY'),
